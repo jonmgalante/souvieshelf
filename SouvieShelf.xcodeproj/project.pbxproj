@@ -1,0 +1,617 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		000000000000000000000201 /* SouvieShelfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000101 /* SouvieShelfApp.swift */; };
+		000000000000000000000202 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000102 /* AppState.swift */; };
+		000000000000000000000203 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000103 /* AppShell.swift */; };
+		000000000000000000000204 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000104 /* AppRoute.swift */; };
+		000000000000000000000205 /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000105 /* RepositoryProtocols.swift */; };
+		000000000000000000000206 /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000106 /* ServiceProtocols.swift */; };
+		000000000000000000000207 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000107 /* AppDependencies.swift */; };
+		000000000000000000000208 /* LaunchScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000108 /* LaunchScreens.swift */; };
+		000000000000000000000209 /* LibraryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000109 /* LibraryScreen.swift */; };
+		000000000000000000000210 /* MapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000110 /* MapScreen.swift */; };
+		000000000000000000000211 /* AppTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000111 /* AppTypes.swift */; };
+		000000000000000000000212 /* AppDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000112 /* AppDesign.swift */; };
+		000000000000000000000213 /* AppStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000113 /* AppStoreTests.swift */; };
+		000000000000000000000214 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 000000000000000000000122 /* XCTest.framework */; };
+		000000000000000000000216 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000115 /* PersistenceController.swift */; };
+		000000000000000000000217 /* PersistenceRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000116 /* PersistenceRepositories.swift */; };
+		000000000000000000000218 /* SouvieShelfModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000117 /* SouvieShelfModel.xcdatamodeld */; };
+		000000000000000000000219 /* PersistenceRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000118 /* PersistenceRepositoryTests.swift */; };
+		000000000000000000000220 /* LiveServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000123 /* LiveServices.swift */; };
+		000000000000000000000221 /* AddSouvenirSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000124 /* AddSouvenirSheet.swift */; };
+		000000000000000000000222 /* SouvenirDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000125 /* SouvenirDetailScreen.swift */; };
+		000000000000000000000223 /* TripDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000126 /* TripDetailScreen.swift */; };
+		000000000000000000000224 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000127 /* SettingsScreen.swift */; };
+		000000000000000000000225 /* PartnerShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000128 /* PartnerShareSheet.swift */; };
+		000000000000000000000226 /* RecentlyDeletedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000129 /* RecentlyDeletedScreen.swift */; };
+		000000000000000000000227 /* SettingsScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000130 /* SettingsScreenTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		000000000000000000000701 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000801 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000000000401;
+			remoteInfo = SouvieShelf;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		000000000000000000000101 /* SouvieShelfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SouvieShelfApp.swift; sourceTree = "<group>"; };
+		000000000000000000000102 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		000000000000000000000103 /* AppShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShell.swift; sourceTree = "<group>"; };
+		000000000000000000000104 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+		000000000000000000000105 /* RepositoryProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryProtocols.swift; sourceTree = "<group>"; };
+		000000000000000000000106 /* ServiceProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
+		000000000000000000000107 /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependencies.swift; sourceTree = "<group>"; };
+		000000000000000000000108 /* LaunchScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreens.swift; sourceTree = "<group>"; };
+		000000000000000000000109 /* LibraryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000110 /* MapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000111 /* AppTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypes.swift; sourceTree = "<group>"; };
+		000000000000000000000112 /* AppDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDesign.swift; sourceTree = "<group>"; };
+		000000000000000000000113 /* AppStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreTests.swift; sourceTree = "<group>"; };
+		000000000000000000000115 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
+		000000000000000000000116 /* PersistenceRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceRepositories.swift; sourceTree = "<group>"; };
+		000000000000000000000117 /* SouvieShelfModel.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodeld; path = SouvieShelfModel.xcdatamodeld; sourceTree = "<group>"; };
+		000000000000000000000118 /* PersistenceRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceRepositoryTests.swift; sourceTree = "<group>"; };
+		000000000000000000000120 /* SouvieShelf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SouvieShelf.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000121 /* SouvieShelfTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SouvieShelfTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000122 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		000000000000000000000123 /* LiveServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveServices.swift; sourceTree = "<group>"; };
+		000000000000000000000124 /* AddSouvenirSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSouvenirSheet.swift; sourceTree = "<group>"; };
+		000000000000000000000125 /* SouvenirDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SouvenirDetailScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000126 /* TripDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripDetailScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000127 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000128 /* PartnerShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartnerShareSheet.swift; sourceTree = "<group>"; };
+		000000000000000000000129 /* RecentlyDeletedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentlyDeletedScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000130 /* SettingsScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreenTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		000000000000000000000302 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		000000000000000000000305 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000214 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		000000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000005 /* App */,
+				000000000000000000000006 /* Core */,
+				000000000000000000000007 /* Features */,
+				000000000000000000000008 /* Shared */,
+				000000000000000000000009 /* SouvieShelfTests */,
+				000000000000000000000004 /* Frameworks */,
+				000000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		000000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000120 /* SouvieShelf.app */,
+				000000000000000000000121 /* SouvieShelfTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		000000000000000000000004 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000122 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		000000000000000000000005 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000101 /* SouvieShelfApp.swift */,
+				000000000000000000000102 /* AppState.swift */,
+				000000000000000000000103 /* AppShell.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		000000000000000000000006 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000010 /* Routing */,
+				000000000000000000000011 /* Repositories */,
+				000000000000000000000019 /* Persistence */,
+				000000000000000000000012 /* Services */,
+				000000000000000000000013 /* DependencyInjection */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		000000000000000000000007 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000014 /* Launch */,
+				000000000000000000000015 /* Library */,
+				000000000000000000000016 /* Map */,
+				000000000000000000000022 /* Settings */,
+				000000000000000000000023 /* Deleted */,
+				000000000000000000000021 /* Trip */,
+				000000000000000000000020 /* Souvenir */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		000000000000000000000008 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000017 /* Models */,
+				000000000000000000000018 /* UI */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		000000000000000000000009 /* SouvieShelfTests */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000113 /* AppStoreTests.swift */,
+				000000000000000000000118 /* PersistenceRepositoryTests.swift */,
+				000000000000000000000130 /* SettingsScreenTests.swift */,
+			);
+			path = SouvieShelfTests;
+			sourceTree = "<group>";
+		};
+		000000000000000000000010 /* Routing */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000104 /* AppRoute.swift */,
+			);
+			path = Routing;
+			sourceTree = "<group>";
+		};
+		000000000000000000000011 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000105 /* RepositoryProtocols.swift */,
+				000000000000000000000116 /* PersistenceRepositories.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		000000000000000000000019 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000115 /* PersistenceController.swift */,
+				000000000000000000000117 /* SouvieShelfModel.xcdatamodeld */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		000000000000000000000012 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000106 /* ServiceProtocols.swift */,
+				000000000000000000000123 /* LiveServices.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		000000000000000000000013 /* DependencyInjection */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000107 /* AppDependencies.swift */,
+			);
+			path = DependencyInjection;
+			sourceTree = "<group>";
+		};
+		000000000000000000000014 /* Launch */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000108 /* LaunchScreens.swift */,
+			);
+			path = Launch;
+			sourceTree = "<group>";
+		};
+		000000000000000000000015 /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000109 /* LibraryScreen.swift */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
+		000000000000000000000016 /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000110 /* MapScreen.swift */,
+			);
+			path = Map;
+			sourceTree = "<group>";
+		};
+		000000000000000000000022 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000127 /* SettingsScreen.swift */,
+				000000000000000000000128 /* PartnerShareSheet.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		000000000000000000000023 /* Deleted */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000129 /* RecentlyDeletedScreen.swift */,
+			);
+			path = Deleted;
+			sourceTree = "<group>";
+		};
+		000000000000000000000020 /* Souvenir */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000124 /* AddSouvenirSheet.swift */,
+				000000000000000000000125 /* SouvenirDetailScreen.swift */,
+			);
+			path = Souvenir;
+			sourceTree = "<group>";
+		};
+		000000000000000000000021 /* Trip */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000126 /* TripDetailScreen.swift */,
+			);
+			path = Trip;
+			sourceTree = "<group>";
+		};
+		000000000000000000000017 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000111 /* AppTypes.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		000000000000000000000018 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000112 /* AppDesign.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		000000000000000000000401 /* SouvieShelf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 000000000000000000000502 /* Build configuration list for PBXNativeTarget "SouvieShelf" */;
+			buildPhases = (
+				000000000000000000000301 /* Sources */,
+				000000000000000000000302 /* Frameworks */,
+				000000000000000000000303 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SouvieShelf;
+			productName = SouvieShelf;
+			productReference = 000000000000000000000120 /* SouvieShelf.app */;
+			productType = "com.apple.product-type.application";
+		};
+		000000000000000000000402 /* SouvieShelfTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 000000000000000000000503 /* Build configuration list for PBXNativeTarget "SouvieShelfTests" */;
+			buildPhases = (
+				000000000000000000000304 /* Sources */,
+				000000000000000000000305 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				000000000000000000000702 /* PBXTargetDependency */,
+			);
+			name = SouvieShelfTests;
+			productName = SouvieShelfTests;
+			productReference = 000000000000000000000121 /* SouvieShelfTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		000000000000000000000801 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					000000000000000000000401 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					000000000000000000000402 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 000000000000000000000401;
+					};
+				};
+			};
+			buildConfigurationList = 000000000000000000000501 /* Build configuration list for PBXProject "SouvieShelf" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 000000000000000000000002;
+			productRefGroup = 000000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000000401 /* SouvieShelf */,
+				000000000000000000000402 /* SouvieShelfTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		000000000000000000000303 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		000000000000000000000301 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000201 /* SouvieShelfApp.swift in Sources */,
+				000000000000000000000202 /* AppState.swift in Sources */,
+				000000000000000000000203 /* AppShell.swift in Sources */,
+				000000000000000000000204 /* AppRoute.swift in Sources */,
+				000000000000000000000205 /* RepositoryProtocols.swift in Sources */,
+				000000000000000000000206 /* ServiceProtocols.swift in Sources */,
+				000000000000000000000207 /* AppDependencies.swift in Sources */,
+				000000000000000000000208 /* LaunchScreens.swift in Sources */,
+				000000000000000000000209 /* LibraryScreen.swift in Sources */,
+				000000000000000000000210 /* MapScreen.swift in Sources */,
+				000000000000000000000211 /* AppTypes.swift in Sources */,
+				000000000000000000000212 /* AppDesign.swift in Sources */,
+				000000000000000000000216 /* PersistenceController.swift in Sources */,
+				000000000000000000000217 /* PersistenceRepositories.swift in Sources */,
+				000000000000000000000218 /* SouvieShelfModel.xcdatamodeld in Sources */,
+				000000000000000000000220 /* LiveServices.swift in Sources */,
+				000000000000000000000221 /* AddSouvenirSheet.swift in Sources */,
+				000000000000000000000222 /* SouvenirDetailScreen.swift in Sources */,
+				000000000000000000000223 /* TripDetailScreen.swift in Sources */,
+				000000000000000000000224 /* SettingsScreen.swift in Sources */,
+				000000000000000000000225 /* PartnerShareSheet.swift in Sources */,
+				000000000000000000000226 /* RecentlyDeletedScreen.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		000000000000000000000304 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000213 /* AppStoreTests.swift in Sources */,
+				000000000000000000000219 /* PersistenceRepositoryTests.swift in Sources */,
+				000000000000000000000227 /* SettingsScreenTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		000000000000000000000702 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000000000401 /* SouvieShelf */;
+			targetProxy = 000000000000000000000701 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		000000000000000000000601 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		000000000000000000000602 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		000000000000000000000603 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CODE_SIGN_ENTITLEMENTS = SouvieShelf.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CKSharingSupported = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "SouvieShelf uses the camera so you can add a new souvenir photo.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SouvieShelf uses your location to suggest where you got a souvenir.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SouvieShelf uses your photo library so you can import souvenir photos.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.SouvieShelf;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		000000000000000000000604 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CODE_SIGN_ENTITLEMENTS = SouvieShelf.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CKSharingSupported = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "SouvieShelf uses the camera so you can add a new souvenir photo.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SouvieShelf uses your location to suggest where you got a souvenir.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SouvieShelf uses your photo library so you can import souvenir photos.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.SouvieShelf;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		000000000000000000000605 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.SouvieShelfTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SouvieShelf.app/SouvieShelf";
+			};
+			name = Debug;
+		};
+		000000000000000000000606 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.SouvieShelfTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SouvieShelf.app/SouvieShelf";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		000000000000000000000501 /* Build configuration list for PBXProject "SouvieShelf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000601 /* Debug */,
+				000000000000000000000602 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		000000000000000000000502 /* Build configuration list for PBXNativeTarget "SouvieShelf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000603 /* Debug */,
+				000000000000000000000604 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		000000000000000000000503 /* Build configuration list for PBXNativeTarget "SouvieShelfTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000605 /* Debug */,
+				000000000000000000000606 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 000000000000000000000801 /* Project object */;
+}
