@@ -12,22 +12,43 @@ final class PersistenceController: @unchecked Sendable {
     enum PersistenceError: LocalizedError {
         case missingModel(name: String)
         case missingEntity(name: String)
-        case failedToLoadPersistentStore(underlyingError: Error)
+        case failedToLoadPersistentStore(
+            scope: StoreScope,
+            storeURL: URL?,
+            underlyingError: NSError
+        )
         case missingPersistentStore(scope: StoreScope)
         case incompletePersistentStoreMapping
 
         var errorDescription: String? {
             switch self {
             case .missingModel(let name):
-                "Couldn't locate the Core Data model named \(name)."
+                return "Couldn't locate the Core Data model named \(name)."
             case .missingEntity(let name):
-                "Couldn't locate the Core Data entity named \(name)."
-            case .failedToLoadPersistentStore(let underlyingError):
-                "Couldn't load persistent stores: \(underlyingError.localizedDescription)"
+                return "Couldn't locate the Core Data entity named \(name)."
+            case let .failedToLoadPersistentStore(scope, storeURL, underlyingError):
+                let storePath = storeURL?.path(percentEncoded: false) ?? "memory"
+                var components = [
+                    "Couldn't load the \(scope.configurationName) persistent store at \(storePath).",
+                    "[\(underlyingError.domain) \(underlyingError.code)] \(underlyingError.localizedDescription)"
+                ]
+
+                if let failureReason = underlyingError.localizedFailureReason,
+                   !failureReason.isEmpty {
+                    components.append("Reason: \(failureReason)")
+                }
+
+                if let nestedError = underlyingError.userInfo[NSUnderlyingErrorKey] as? NSError {
+                    components.append(
+                        "Underlying: [\(nestedError.domain) \(nestedError.code)] \(nestedError.localizedDescription)"
+                    )
+                }
+
+                return components.joined(separator: " ")
             case .missingPersistentStore(let scope):
-                "Couldn't resolve the \(scope.configurationName) persistent store."
+                return "Couldn't resolve the \(scope.configurationName) persistent store."
             case .incompletePersistentStoreMapping:
-                "Couldn't map all configured persistent stores after loading."
+                return "Couldn't map all configured persistent stores after loading."
             }
         }
     }
@@ -258,7 +279,7 @@ final class PersistenceController: @unchecked Sendable {
         let coordinator = container.persistentStoreCoordinator
         let lock = NSLock()
         let group = DispatchGroup()
-        var firstError: Error?
+        var firstError: PersistenceError?
         var descriptionsByScope: [StoreScope: NSPersistentStoreDescription] = [:]
 
         container.persistentStoreDescriptions.forEach { _ in
@@ -274,12 +295,19 @@ final class PersistenceController: @unchecked Sendable {
             }
 
             if let error {
+                let nsError = error as NSError
+                let storePath = description.url?.path(percentEncoded: false) ?? "memory"
+                let failureReason = nsError.localizedFailureReason ?? "none"
                 logger.error(
-                    "Failed loading the \(scope.configurationName, privacy: .public) store: \(error.localizedDescription, privacy: .public)"
+                    "Failed loading the \(scope.configurationName, privacy: .public) store at \(storePath, privacy: .public): [\(nsError.domain, privacy: .public) \(nsError.code)] \(nsError.localizedDescription, privacy: .public) reason=\(failureReason, privacy: .public)"
                 )
                 lock.lock()
                 if firstError == nil {
-                    firstError = error
+                    firstError = .failedToLoadPersistentStore(
+                        scope: scope,
+                        storeURL: description.url,
+                        underlyingError: nsError
+                    )
                 }
                 lock.unlock()
                 return
@@ -298,7 +326,7 @@ final class PersistenceController: @unchecked Sendable {
         group.wait()
 
         if let firstError {
-            throw PersistenceError.failedToLoadPersistentStore(underlyingError: firstError)
+            throw firstError
         }
 
         var storesByScope: [StoreScope: NSPersistentStore] = [:]

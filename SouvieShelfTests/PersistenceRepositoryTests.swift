@@ -2,6 +2,39 @@ import XCTest
 @testable import SouvieShelf
 
 final class PersistenceRepositoryTests: XCTestCase {
+    func testManagedObjectModelSatisfiesCloudKitRequirementsForConfiguredStores() throws {
+        let persistenceController = try PersistenceController.inMemory()
+        let model = persistenceController.container.managedObjectModel
+
+        for scope in StoreScope.allCases {
+            let entities = try XCTUnwrap(
+                model.entities(forConfigurationName: scope.configurationName),
+                "Expected entities for the \(scope.configurationName) configuration."
+            )
+
+            for entity in entities {
+                let entityName = entity.name ?? "Unknown"
+                let invalidAttributes = entity.attributesByName.values
+                    .filter { !$0.isOptional && $0.defaultValue == nil }
+                    .map { $0.name }
+                    .sorted()
+                XCTAssertTrue(
+                    invalidAttributes.isEmpty,
+                    "CloudKit-backed \(scope.configurationName) entity \(entityName) has non-optional attributes without defaults: \(invalidAttributes)"
+                )
+
+                let invalidRelationships = entity.relationshipsByName.values
+                    .filter { !$0.isOptional }
+                    .map { $0.name }
+                    .sorted()
+                XCTAssertTrue(
+                    invalidRelationships.isEmpty,
+                    "CloudKit-backed \(scope.configurationName) entity \(entityName) has non-optional relationships: \(invalidRelationships)"
+                )
+            }
+        }
+    }
+
     func testResolveLaunchContextReturnsICloudUnavailableWhenAccountIsUnavailable() async throws {
         let persistenceController = try PersistenceController.inMemory()
         let repository = PersistenceBackedAppBackend(

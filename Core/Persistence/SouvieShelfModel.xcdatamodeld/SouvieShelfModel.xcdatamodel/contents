@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="26101" systemVersion="24A335" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Library" representedClassName="Library" syncable="YES" codeGenerationType="class">
-        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="title" optional="NO" attributeType="String"/>
-        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="souvenirs" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Souvenir" inverseName="library" inverseEntity="Souvenir"/>
         <relationship name="trips" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Trip" inverseName="library" inverseEntity="Trip"/>
     </entity>
     <entity name="Trip" representedClassName="Trip" syncable="YES" codeGenerationType="class">
-        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="deletedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="destinationSummary" optional="YES" attributeType="String"/>
         <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="title" optional="NO" attributeType="String"/>
-        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="library" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="Library" inverseName="trips" inverseEntity="Library"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="library" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Library" inverseName="trips" inverseEntity="Library"/>
         <relationship name="souvenirs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Souvenir" inverseName="trip" inverseEntity="Souvenir"/>
     </entity>
     <entity name="Souvenir" representedClassName="Souvenir" syncable="YES" codeGenerationType="class">
         <attribute name="acquiredDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="deletedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="fromCity" optional="YES" attributeType="String"/>
         <attribute name="fromCountryCode" optional="YES" attributeType="String"/>
@@ -34,24 +34,24 @@
         <attribute name="gotItInLatitude" optional="NO" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="gotItInLongitude" optional="NO" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="gotItInName" optional="YES" attributeType="String"/>
-        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="story" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
-        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="library" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="Library" inverseName="souvenirs" inverseEntity="Library"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="library" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Library" inverseName="souvenirs" inverseEntity="Library"/>
         <relationship name="photos" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PhotoAsset" inverseName="souvenir" inverseEntity="PhotoAsset"/>
         <relationship name="trip" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Trip" inverseName="souvenirs" inverseEntity="Trip"/>
     </entity>
     <entity name="PhotoAsset" representedClassName="PhotoAsset" syncable="YES" codeGenerationType="class">
-        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="displayImageData" optional="NO" attributeType="Binary"/>
-        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="displayImageData" optional="YES" attributeType="Binary"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isPrimary" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="pixelHeight" optional="NO" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelWidth" optional="NO" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="sortIndex" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="thumbnailData" optional="NO" attributeType="Binary"/>
-        <relationship name="souvenir" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="Souvenir" inverseName="photos" inverseEntity="Souvenir"/>
+        <attribute name="thumbnailData" optional="YES" attributeType="Binary"/>
+        <relationship name="souvenir" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Souvenir" inverseName="photos" inverseEntity="Souvenir"/>
     </entity>
     <configuration name="Private">
         <memberEntity name="Library"/>
