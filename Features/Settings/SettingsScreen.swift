@@ -128,7 +128,7 @@ struct SettingsScreen: View {
                     symbolName: "icloud.fill",
                     tintColor: AppTheme.accentPrimary,
                     title: "Connected to iCloud",
-                    message: "SouvieShelf can sync and share Our Library with your Apple account on this iPhone."
+                    message: "SouvieShelf can sync and share your library with your Apple account on this iPhone."
                 )
                 .appGroupedRowChrome()
             case .unavailable:
@@ -313,8 +313,8 @@ struct SettingsPartnerPresentation {
             switch shareSummary.partnerState {
             case .none:
                 return SettingsPartnerPresentation(
-                    title: "No partner connected",
-                    message: "Only you can see this library until you invite your partner.",
+                    title: "Invite Partner anytime",
+                    message: "Keep using this library on your own for now, then invite your partner later from Apple's native share sheet.",
                     symbolName: "person.badge.plus",
                     tintColor: AppTheme.accentPrimary,
                     action: .invitePartner
@@ -322,7 +322,7 @@ struct SettingsPartnerPresentation {
             case .inviteSent:
                 return SettingsPartnerPresentation(
                     title: "Invite pending",
-                    message: "Your partner can join from Apple's native share invite on their iPhone.",
+                    message: "Your invite is out. You can keep using the library while your partner accepts on their iPhone.",
                     symbolName: "paperplane.fill",
                     tintColor: .orange,
                     action: .managePartner
@@ -330,7 +330,7 @@ struct SettingsPartnerPresentation {
             case .connected(let displayName):
                 return SettingsPartnerPresentation(
                     title: displayName.map { "Connected with \($0)" } ?? "Partner connected",
-                    message: "Everything you save here stays in your shared couple library.",
+                    message: "Everything you save here stays in your shared library.",
                     symbolName: "person.2.fill",
                     tintColor: AppTheme.accentPrimary,
                     action: .managePartner
@@ -343,7 +343,7 @@ struct SettingsPartnerPresentation {
             let ownerDisplayName = shareSummary.ownerDisplayName ?? displayName
             return SettingsPartnerPresentation(
                 title: ownerDisplayName.map { "Shared by \($0)" } ?? "Shared with you",
-                message: "You're viewing the shared couple library from your partner's invite.",
+                message: "You're viewing the shared library from your partner's invite.",
                 symbolName: "person.2.fill",
                 tintColor: AppTheme.accentPrimary,
                 action: nil

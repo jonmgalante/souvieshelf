@@ -113,11 +113,6 @@ final class PersistenceBackedAppBackend: @unchecked Sendable, BootstrapRepositor
     }
 
     func resolveLaunchContext() async -> LaunchContextResolution {
-        guard await iCloudStatus() == .available else {
-            logger.info("Launch resolution selected the iCloud unavailable branch.")
-            return .iCloudUnavailable
-        }
-
         if let context = await libraryContext(in: .sharedLibrary) {
             logger.info("Launch resolution selected the shared-library branch.")
             return .ready(context)
@@ -128,7 +123,7 @@ final class PersistenceBackedAppBackend: @unchecked Sendable, BootstrapRepositor
             return .ready(context)
         }
 
-        logger.info("Launch resolution selected the pairing branch.")
+        logger.info("Launch resolution selected the first-run branch because no library exists yet.")
         return .needsPairing
     }
 

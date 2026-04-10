@@ -12,6 +12,25 @@ final class AppStoreTests: XCTestCase {
         XCTAssertNil(store.activeLibraryContext)
     }
 
+    func testLaunchTransitionsToPairingWhenNoLibraryExistsAndICloudIsUnavailable() async {
+        let store = AppStore(dependencies: .preview(scenario: .iCloudUnavailable))
+
+        await store.launchIfNeeded()
+
+        XCTAssertEqual(store.phase, .pairing)
+        XCTAssertNil(store.activeLibraryContext)
+    }
+
+    func testCreateOurLibraryShowsICloudRequiredWhenICloudIsUnavailable() async {
+        let store = AppStore(dependencies: .preview(scenario: .iCloudUnavailable))
+
+        await store.launchIfNeeded()
+        await store.createOurLibrary()
+
+        XCTAssertEqual(store.phase, .iCloudUnavailable)
+        XCTAssertNil(store.activeLibraryContext)
+    }
+
     func testCreateOurLibraryTransitionsToReady() async {
         let store = AppStore(dependencies: .preview(scenario: .pairing))
 

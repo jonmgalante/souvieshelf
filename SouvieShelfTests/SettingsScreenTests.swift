@@ -18,8 +18,29 @@ final class SettingsScreenTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(presentation.title, "No partner connected")
+        XCTAssertEqual(presentation.title, "Invite Partner anytime")
+        XCTAssertEqual(
+            presentation.message,
+            "Keep using this library on your own for now, then invite your partner later from Apple's native share sheet."
+        )
         XCTAssertEqual(presentation.action, .invitePartner)
+    }
+
+    func testOwnerWithPendingInviteShowsManagePartnerAction() {
+        let presentation = SettingsPartnerPresentation.resolve(
+            shareSummary: ShareSummary(
+                libraryName: "Our Library",
+                shareExists: true,
+                ownerDisplayName: "You",
+                participantCount: 1,
+                isOwner: true,
+                partnerState: .inviteSent
+            ),
+            activeLibraryContext: ActiveLibraryContext.previewInviteSent
+        )
+
+        XCTAssertEqual(presentation.title, "Invite pending")
+        XCTAssertEqual(presentation.action, .managePartner)
     }
 
     func testOwnerWithConnectedPartnerShowsManagePartnerAction() {

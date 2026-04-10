@@ -88,19 +88,10 @@ private struct LibraryHomeContent: View {
     }
 
     private var ownerShareBannerState: LibraryOwnerShareBannerState? {
-        guard activeLibraryContext.isOwner else {
-            return nil
-        }
-
-        let partnerState = shareSummary?.partnerState ?? activeLibraryContext.partnerState
-        switch partnerState {
-        case .none:
-            return .invitePartner
-        case .inviteSent:
-            return .invitePending
-        case .connected:
-            return nil
-        }
+        LibraryOwnerShareBannerState.resolve(
+            isOwner: activeLibraryContext.isOwner,
+            partnerState: shareSummary?.partnerState ?? activeLibraryContext.partnerState
+        )
     }
 
     private var activeSouvenirs: [Souvenir] {
@@ -200,7 +191,7 @@ private struct LibraryHomeContent: View {
             LibraryEmptyStateView(
                 icon: "shippingbox.circle.fill",
                 title: "Your library starts here",
-                message: "Use Add in the center of the tab bar when you're ready to save your first souvenir or trip together."
+                message: "Use Add in the center of the tab bar when you're ready to save your first souvenir or trip."
             )
         } else {
             switch selectedSegment {
@@ -220,7 +211,7 @@ private struct LibraryHomeContent: View {
             LibraryEmptyStateView(
                 icon: "shippingbox.fill",
                 title: "No items yet",
-                message: "Souvenirs will land here as soon as you start adding keepsakes to Our Library."
+                message: "Souvenirs will land here as soon as you start adding keepsakes to this library."
             )
         } else {
             LazyVStack(spacing: AppSpacing.medium) {
@@ -246,7 +237,7 @@ private struct LibraryHomeContent: View {
             LibraryEmptyStateView(
                 icon: "suitcase.rolling.fill",
                 title: "No trips yet",
-                message: "Create a trip to keep souvenirs from the same journey together."
+                message: "Create a trip to group souvenirs from the same journey."
             )
         } else {
             LazyVStack(spacing: AppSpacing.medium) {
@@ -382,13 +373,13 @@ private struct LibrarySummaryCard: View {
     private var message: String {
         switch partnerState {
         case .none:
-            return "Only you can see this library until you send an invite."
+            return "You're using this library on your own for now."
         case .inviteSent:
-            return "Your partner can accept from Apple's native share invite on their iPhone."
+            return "Your partner invite is still pending while you keep using the library."
         case .connected:
             return activeLibraryContext.isOwner
-                ? "Everything you save here stays in your shared couple library."
-                : "You're looking at the active shared library from your partner's invite."
+                ? "Everything you save here stays in your shared library."
+                : "You're looking at the shared library from your partner's invite."
         }
     }
 
@@ -750,14 +741,32 @@ private struct LibraryEmptyStateView: View {
     }
 }
 
-private enum LibraryOwnerShareBannerState {
+enum LibraryOwnerShareBannerState: Equatable {
     case invitePartner
     case invitePending
+
+    static func resolve(
+        isOwner: Bool,
+        partnerState: PartnerConnectionState
+    ) -> LibraryOwnerShareBannerState? {
+        guard isOwner else {
+            return nil
+        }
+
+        switch partnerState {
+        case .none:
+            return .invitePartner
+        case .inviteSent:
+            return .invitePending
+        case .connected:
+            return nil
+        }
+    }
 
     var title: String {
         switch self {
         case .invitePartner:
-            return "Invite your partner"
+            return "Invite Partner later"
         case .invitePending:
             return "Invite still pending"
         }
@@ -766,9 +775,9 @@ private enum LibraryOwnerShareBannerState {
     var message: String {
         switch self {
         case .invitePartner:
-            return "Open Settings to invite your partner with Apple's native sharing flow."
+            return "Optional: open Settings whenever you want to share this library with your partner."
         case .invitePending:
-            return "Open Settings to resend or manage the existing partner invite."
+            return "You can keep using the app while your partner accepts. Open Settings to resend or manage the invite."
         }
     }
 

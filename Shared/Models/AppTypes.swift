@@ -142,9 +142,9 @@ enum PartnerConnectionState: Equatable, Codable, Sendable {
     var statusText: String {
         switch self {
         case .none:
-            "Invite your partner to join"
+            "Invite Partner anytime"
         case .inviteSent:
-            "Invite sent. Waiting for your partner to accept"
+            "Invite pending"
         case .connected(let displayName):
             if let displayName, !displayName.isEmpty {
                 "Connected with \(displayName)"

@@ -35,7 +35,7 @@ final class PersistenceRepositoryTests: XCTestCase {
         }
     }
 
-    func testResolveLaunchContextReturnsICloudUnavailableWhenAccountIsUnavailable() async throws {
+    func testResolveLaunchContextReturnsNeedsPairingWhenNoLibraryExistsAndAccountIsUnavailable() async throws {
         let persistenceController = try PersistenceController.inMemory()
         let repository = PersistenceBackedAppBackend(
             persistenceController: persistenceController,
@@ -44,17 +44,38 @@ final class PersistenceRepositoryTests: XCTestCase {
 
         let resolution = await repository.resolveLaunchContext()
 
-        XCTAssertEqual(resolution, .iCloudUnavailable)
+        XCTAssertEqual(resolution, .needsPairing)
     }
 
-    func testResolveLaunchContextPrefersSharedStoreOverPrivateStore() async throws {
+    func testResolveLaunchContextReturnsReadyPrivateLibraryWhenOnlyPrivateLibraryExistsAndAccountIsUnavailable() async throws {
+        let persistenceController = try PersistenceController.inMemory()
+        try persistenceController.seedLibrary(title: "Our Library", scope: .privateLibrary)
+        let repository = PersistenceBackedAppBackend(
+            persistenceController: persistenceController,
+            iCloudStatusProvider: FixedICloudStatusProvider(fixedStatus: .unavailable)
+        )
+
+        let resolution = await repository.resolveLaunchContext()
+
+        switch resolution {
+        case .ready(let context):
+            XCTAssertEqual(context.libraryTitle, "Our Library")
+            XCTAssertEqual(context.storeScope, .privateLibrary)
+            XCTAssertTrue(context.isOwner)
+            XCTAssertEqual(context.partnerState, .none)
+        default:
+            XCTFail("Expected a ready(private) launch resolution.")
+        }
+    }
+
+    func testResolveLaunchContextPrefersSharedStoreOverPrivateStoreWhenAccountIsUnavailable() async throws {
         let persistenceController = try PersistenceController.inMemory()
         try persistenceController.seedLibrary(title: "Our Library", scope: .privateLibrary)
         try persistenceController.seedLibrary(title: "Our Library", scope: .sharedLibrary)
 
         let repository = PersistenceBackedAppBackend(
             persistenceController: persistenceController,
-            iCloudStatusProvider: FixedICloudStatusProvider(fixedStatus: .available)
+            iCloudStatusProvider: FixedICloudStatusProvider(fixedStatus: .unavailable)
         )
 
         let resolution = await repository.resolveLaunchContext()

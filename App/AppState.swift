@@ -4,6 +4,11 @@ import SwiftUI
 
 @MainActor
 final class AppStore: ObservableObject {
+    private enum PendingICloudAction {
+        case createLibrary
+        case acceptShare(CKShare.Metadata)
+    }
+
     @Published private(set) var phase: AppPhase = .launching
     @Published private(set) var activeLibraryContext: ActiveLibraryContext?
     @Published var selectedTab: MainTab = .library
@@ -18,6 +23,7 @@ final class AppStore: ObservableObject {
         category: "AppState"
     )
     private var hasBootstrapped = false
+    private var pendingICloudAction: PendingICloudAction?
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -35,7 +41,26 @@ final class AppStore: ObservableObject {
         await refreshLaunchState()
     }
 
+    func createOurLibrary() async {
+        joinInformation = nil
+
+        guard await prepareICloudRequiredAction(.createLibrary) else {
+            return
+        }
+
+        await continueCreatingOurLibrary()
+    }
+
+    func showJoinLibraryPlaceholder() {
+        joinInformation = "Open your partner's invite link from Messages or Mail on this iPhone. SouvieShelf will join the shared library and reopen here."
+    }
+
     func retryLaunch() async {
+        if phase == .iCloudUnavailable, let pendingICloudAction {
+            await retryPendingICloudAction(pendingICloudAction)
+            return
+        }
+
         await refreshLaunchState()
     }
 
@@ -53,19 +78,6 @@ final class AppStore: ObservableObject {
         activeLibraryContext.isOwner = summary.isOwner || activeLibraryContext.storeScope == .privateLibrary
         activeLibraryContext.shareSummary = summary
         self.activeLibraryContext = activeLibraryContext
-    }
-
-    func createOurLibrary() async {
-        do {
-            let context = try await dependencies.libraryRepository.createOurLibrary()
-            applyReadyState(context)
-        } catch {
-            joinInformation = "Couldn't create Our Library yet. Try again."
-        }
-    }
-
-    func showJoinLibraryPlaceholder() {
-        joinInformation = "Open your partner's invite link from Messages or Mail on this iPhone. SouvieShelf will join the shared library and reopen here."
     }
 
     func selectTab(_ tab: MainTab) {
@@ -97,11 +109,43 @@ final class AppStore: ObservableObject {
         routePath.append(route)
     }
 
+    private func continueCreatingOurLibrary() async {
+        do {
+            let context = try await dependencies.libraryRepository.createOurLibrary()
+            applyReadyState(context)
+        } catch {
+            joinInformation = "Couldn't create Our Library yet. Try again."
+            phase = .pairing
+        }
+    }
+
+    private func prepareICloudRequiredAction(_ action: PendingICloudAction) async -> Bool {
+        guard await dependencies.bootstrapRepository.iCloudStatus() == .available else {
+            logger.info("Blocking an iCloud-required action until the account becomes available again.")
+            pendingICloudAction = action
+            phase = .iCloudUnavailable
+            return false
+        }
+
+        pendingICloudAction = nil
+        return true
+    }
+
+    private func retryPendingICloudAction(_ action: PendingICloudAction) async {
+        guard await prepareICloudRequiredAction(action) else {
+            return
+        }
+
+        switch action {
+        case .createLibrary:
+            await continueCreatingOurLibrary()
+        case .acceptShare(let metadata):
+            await continueAcceptingIncomingShare(metadata)
+        }
+    }
+
     private func refreshLaunchState() async {
         switch await dependencies.bootstrapRepository.resolveLaunchContext() {
-        case .iCloudUnavailable:
-            activeLibraryContext = nil
-            phase = .iCloudUnavailable
         case .needsPairing:
             activeLibraryContext = nil
             phase = .pairing
@@ -116,6 +160,15 @@ final class AppStore: ObservableObject {
         )
 
         hasBootstrapped = true
+
+        guard await prepareICloudRequiredAction(.acceptShare(metadata)) else {
+            return
+        }
+
+        await continueAcceptingIncomingShare(metadata)
+    }
+
+    private func continueAcceptingIncomingShare(_ metadata: CKShare.Metadata) async {
         phase = .launching
         joinInformation = "Joining your shared library..."
 
@@ -137,6 +190,7 @@ final class AppStore: ObservableObject {
     }
 
     private func applyReadyState(_ context: ActiveLibraryContext) {
+        pendingICloudAction = nil
         activeLibraryContext = context
         mapFilterContext = .library(storeScope: context.storeScope)
         joinInformation = nil

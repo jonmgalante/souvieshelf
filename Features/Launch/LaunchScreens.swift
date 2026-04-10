@@ -11,7 +11,7 @@ struct LaunchGateScreen: View {
                     StateMessageView(
                         icon: "sparkles",
                         title: "Starting SouvieShelf",
-                        message: "Checking iCloud and loading Our Library."
+                        message: "Checking for your library."
                     )
 
                     ProgressView()
@@ -40,7 +40,7 @@ struct ICloudRequiredScreen: View {
             StateMessageView(
                 icon: "icloud.slash.fill",
                 title: "iCloud Is Required",
-                message: "SouvieShelf uses your Apple account for its shared library. Sign in to iCloud on this device, then retry."
+                message: "SouvieShelf uses your Apple account to create and join Our Library. Sign in to iCloud on this device, then retry."
             )
 
             Button("Retry") {
@@ -65,18 +65,18 @@ struct PairingChoiceScreen: View {
                         Text("Our Library")
                             .font(.largeTitle.bold())
 
-                        Text("One shared library for the two of you. Start it here or open your partner's CloudKit invite link on this device to join.")
+                        Text("Create your library now, then invite your partner later, or open their invite link on this iPhone to join.")
                             .font(.body)
                             .foregroundStyle(AppTheme.textSecondary)
 
-                        Button("Create Our Library") {
+                        Button("Create Library") {
                             Task {
                                 await store.createOurLibrary()
                             }
                         }
                         .buttonStyle(.borderedProminent)
 
-                        Button("How to Join") {
+                        Button("Join via Invite Link") {
                             store.showJoinLibraryPlaceholder()
                         }
                         .buttonStyle(.bordered)

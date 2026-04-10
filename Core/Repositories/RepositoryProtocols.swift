@@ -8,7 +8,6 @@ enum ICloudStatus: Equatable, Sendable {
 }
 
 enum LaunchContextResolution: Equatable, Sendable {
-    case iCloudUnavailable
     case needsPairing
     case ready(ActiveLibraryContext)
 }
