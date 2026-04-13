@@ -1,0 +1,23 @@
+{
+  "/Users/jongalante/Desktop/souvieshelf/Core/Repositories/PersistenceRepositories.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceRepositories.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceRepositories.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceRepositories.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceRepositories.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceRepositories.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Core/Services/LiveServices.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LiveServices.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LiveServices.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LiveServices.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LiveServices.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LiveServices.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Features/Souvenir/AddSouvenirSheet.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AddSouvenirSheet.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AddSouvenirSheet.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AddSouvenirSheet.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AddSouvenirSheet.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AddSouvenirSheet.swiftdeps"
+  }
+}

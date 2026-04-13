@@ -1182,6 +1182,10 @@ final class PersistenceBackedAppBackend: @unchecked Sendable, BootstrapRepositor
     ) -> NSFetchRequest<Trip> {
         let request = Trip.fetchRequest()
         request.fetchLimit = 1
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "updatedAt", ascending: false),
+            NSSortDescriptor(key: "createdAt", ascending: false)
+        ]
         request.predicate = NSCompoundPredicate(
             andPredicateWithSubpredicates: [
                 NSPredicate(format: "id == %@", tripID as CVarArg),

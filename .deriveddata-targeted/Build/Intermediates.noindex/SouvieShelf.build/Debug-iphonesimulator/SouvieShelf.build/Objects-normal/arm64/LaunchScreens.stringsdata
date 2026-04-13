@@ -1,0 +1,56 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/Features/Launch/LaunchScreens.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Retry",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "Our Library",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create your library now, then invite your partner later, or open their invite link on this iPhone to join.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Library",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Join via Invite Link",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "Refresh Library Status",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 84
+        }
+      }
+    ]
+  },
+  "version": 1
+}

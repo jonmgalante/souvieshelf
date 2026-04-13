@@ -1,0 +1,23 @@
+{
+  "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/DerivedSources/CoreDataGenerated/SouvieShelfModel/Library+CoreDataClass.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/Library+CoreDataClass.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/Library+CoreDataClass.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/Library+CoreDataClass.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/Library+CoreDataClass.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/Library+CoreDataClass.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Features/Deleted/RecentlyDeletedScreen.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/RecentlyDeletedScreen.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/RecentlyDeletedScreen.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/RecentlyDeletedScreen.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/RecentlyDeletedScreen.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/RecentlyDeletedScreen.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Features/Settings/PartnerShareSheet.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PartnerShareSheet.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PartnerShareSheet.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PartnerShareSheet.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PartnerShareSheet.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PartnerShareSheet.swiftdeps"
+  }
+}

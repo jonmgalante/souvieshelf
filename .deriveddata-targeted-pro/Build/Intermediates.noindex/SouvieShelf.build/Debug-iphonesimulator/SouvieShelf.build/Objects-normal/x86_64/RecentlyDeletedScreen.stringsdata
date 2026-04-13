@@ -1,0 +1,112 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/Features/Deleted/RecentlyDeletedScreen.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Recently Deleted",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "Couldn't restore item",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "Souvenirs",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trips",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unavailable",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 247
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore %@",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "Moves it back into the Library.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 251
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unavailable",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 306
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore %@",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Moves it back into the Library.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 310
+        }
+      }
+    ]
+  },
+  "version": 1
+}

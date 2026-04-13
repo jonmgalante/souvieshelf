@@ -1,0 +1,168 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/Features/Library/LibraryScreen.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "SouvieShelf",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Souvenir",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 344
+        }
+      },
+      {
+        "comment": "",
+        "key": "Import a photo to start a new souvenir.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 345
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 332
+        }
+      },
+      {
+        "comment": "",
+        "key": "Library context",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 427
+        }
+      },
+      {
+        "comment": "",
+        "key": "Personal",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 428
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shared",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 428
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search souvenirs, places, trips, tags...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 457
+        }
+      },
+      {
+        "comment": "",
+        "key": "Library sections",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 561
+        }
+      },
+      {
+        "comment": "",
+        "key": "View %@ on Map",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 1248
+        }
+      },
+      {
+        "comment": "",
+        "key": "View on Map",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 1243
+        }
+      },
+      {
+        "comment": "",
+        "key": "This place doesn't have any active souvenirs in the current library right now.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1273
+        }
+      },
+      {
+        "comment": "",
+        "key": "Souvenirs",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1261
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1267
+        }
+      },
+      {
+        "comment": "",
+        "key": "Opens the Add Souvenir flow.",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1455
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your library starts here",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1437
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save your first souvenir to begin your collection.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1441
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add first souvenir",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1448
+        }
+      },
+      {
+        "comment": "",
+        "key": "Invite Partner later in Settings",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1458
+        }
+      }
+    ]
+  },
+  "version": 1
+}

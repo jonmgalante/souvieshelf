@@ -1,0 +1,48 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/App/AppShell.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Recently Deleted",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current tab.",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 198
+        }
+      },
+      {
+        "comment": "",
+        "key": "Switches to the %@ tab.",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 198
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Souvenir",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 214
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 218
+        }
+      }
+    ]
+  },
+  "version": 1
+}

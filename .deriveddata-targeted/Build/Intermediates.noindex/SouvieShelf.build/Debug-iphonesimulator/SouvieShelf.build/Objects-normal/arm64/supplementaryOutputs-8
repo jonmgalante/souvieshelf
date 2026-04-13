@@ -1,0 +1,23 @@
+{
+  "/Users/jongalante/Desktop/souvieshelf/Core/Persistence/PersistenceController.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceController.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceController.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceController.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceController.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/PersistenceController.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Shared/Models/AppTypes.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppTypes.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppTypes.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppTypes.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppTypes.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppTypes.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Shared/UI/AppDesign.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppDesign.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppDesign.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppDesign.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppDesign.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/AppDesign.swiftdeps"
+  }
+}

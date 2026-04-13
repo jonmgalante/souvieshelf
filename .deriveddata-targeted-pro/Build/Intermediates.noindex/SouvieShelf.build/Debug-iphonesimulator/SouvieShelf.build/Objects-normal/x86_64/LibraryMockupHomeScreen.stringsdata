@@ -1,0 +1,32 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/Features/Library/LibraryMockupHomeScreen.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Souvenir",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 178
+        }
+      }
+    ]
+  },
+  "version": 1
+}

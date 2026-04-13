@@ -1138,6 +1138,26 @@ final class PersistenceRepositoryTests: XCTestCase {
         XCTAssertEqual(annotations.first?.placeSummary, "Blue Lagoon, Iceland")
     }
 
+    func testTripMapFetchRequestIncludesSortDescriptors() async throws {
+        let persistenceController = try PersistenceController.inMemory()
+        let repository = PersistenceBackedAppBackend(
+            persistenceController: persistenceController,
+            iCloudStatusProvider: FixedICloudStatusProvider(fixedStatus: .available)
+        )
+        let libraryContext = try await repository.createLibrary(title: "Our Library")
+
+        let request = repository.tripFetchRequest(
+            tripID: UUID(),
+            activeLibraryContext: libraryContext
+        )
+
+        XCTAssertEqual(request.sortDescriptors?.count, 2)
+        XCTAssertEqual(request.sortDescriptors?.first?.key, "updatedAt")
+        XCTAssertEqual(request.sortDescriptors?.first?.ascending, false)
+        XCTAssertEqual(request.sortDescriptors?.dropFirst().first?.key, "createdAt")
+        XCTAssertEqual(request.sortDescriptors?.dropFirst().first?.ascending, false)
+    }
+
     private func fetchTripSnapshots(
         persistenceController: PersistenceController,
         scope: StoreScope

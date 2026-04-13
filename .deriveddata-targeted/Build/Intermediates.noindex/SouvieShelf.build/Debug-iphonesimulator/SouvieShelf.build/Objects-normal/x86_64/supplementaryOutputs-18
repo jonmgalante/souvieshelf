@@ -1,0 +1,23 @@
+{
+  "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/DerivedSources/CoreDataGenerated/SouvieShelfModel/PhotoAsset+CoreDataProperties.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataProperties.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataProperties.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataProperties.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataProperties.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataProperties.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/DerivedSources/CoreDataGenerated/SouvieShelfModel/SouvieShelfModel+CoreDataModel.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/SouvieShelfModel+CoreDataModel.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/SouvieShelfModel+CoreDataModel.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/SouvieShelfModel+CoreDataModel.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/SouvieShelfModel+CoreDataModel.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/SouvieShelfModel+CoreDataModel.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/GeneratedAssetSymbols.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftdeps"
+  }
+}

@@ -171,6 +171,10 @@ struct MapScreen: View {
     private static func emptyTripFetchRequest() -> NSFetchRequest<Trip> {
         let request = Trip.fetchRequest()
         request.fetchLimit = 1
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "updatedAt", ascending: false),
+            NSSortDescriptor(key: "createdAt", ascending: false)
+        ]
         request.predicate = NSPredicate(value: false)
         return request
     }

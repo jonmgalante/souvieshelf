@@ -1,0 +1,192 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/Features/Trip/TripDetailScreen.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Delete this trip?",
+        "location": {
+          "startingColumn": 13,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "Couldn't complete that action",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Trip",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Trip",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 145
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "Souvenirs linked to this trip stay in the Library, but the trip moves to Recently Deleted and stops showing as an active trip until you restore it.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 153
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Trip",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 276
+        }
+      },
+      {
+        "comment": "",
+        "key": "Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dates",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "Title",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "Destination summary",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start date",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 233
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start date",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 238
+        }
+      },
+      {
+        "comment": "",
+        "key": "End date",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "End date",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 297
+        }
+      },
+      {
+        "comment": "",
+        "key": "View %@ on Map",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 596
+        }
+      },
+      {
+        "comment": "",
+        "key": "View on Map",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 592
+        }
+      },
+      {
+        "comment": "",
+        "key": "No active souvenirs are linked to this trip yet.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 621
+        }
+      },
+      {
+        "comment": "",
+        "key": "Souvenirs",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 609
+        }
+      }
+    ]
+  },
+  "version": 1
+}

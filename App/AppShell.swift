@@ -13,17 +13,12 @@ struct AppShell: View {
         }
         .appScreenBackground()
         .appNavigationChrome()
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             ShellTabBar(
                 selectedTab: store.selectedTab,
                 onLibraryTap: { store.selectTab(.library) },
-                onAddTap: { store.presentAddSheet() },
                 onMapTap: { store.selectTab(.map) }
             )
-            .padding(.horizontal, AppSpacing.large)
-            .padding(.top, AppSpacing.small)
-            .padding(.bottom, AppSpacing.small)
-            .background(AppTheme.tabBarBackground)
         }
         .sheet(isPresented: $store.isShowingAddSheet) {
             if let activeLibraryContext = store.activeLibraryContext {
@@ -147,46 +142,36 @@ struct AppShell: View {
 private struct ShellTabBar: View {
     let selectedTab: MainTab
     let onLibraryTap: () -> Void
-    let onAddTap: () -> Void
     let onMapTap: () -> Void
 
     var body: some View {
-        HStack(spacing: AppSpacing.medium) {
-            TabBarButton(
-                title: MainTab.library.title,
-                symbolName: MainTab.library.symbolName,
-                isSelected: selectedTab == .library,
-                action: onLibraryTap
-            )
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(AppTheme.libraryBorder.opacity(0.9))
+                .frame(height: 1)
 
-            Button(action: onAddTap) {
-                Image(systemName: "plus")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(AppTheme.textOnEmphasis)
-                    .frame(width: 56, height: 56)
-                    .background(Circle().fill(AppTheme.surfaceEmphasis))
+            HStack(spacing: AppSpacing.medium) {
+                TabBarButton(
+                    title: MainTab.library.title,
+                    symbolName: "list.bullet.rectangle.portrait.fill",
+                    isSelected: selectedTab == .library,
+                    action: onLibraryTap
+                )
+
+                TabBarButton(
+                    title: MainTab.map.title,
+                    symbolName: "mappin.and.ellipse",
+                    isSelected: selectedTab == .map,
+                    action: onMapTap
+                )
             }
-            .shadow(color: AppTheme.shadowColor, radius: 14, y: 5)
-            .accessibilityLabel("Add Souvenir")
-            .accessibilityHint("Import a photo to start a new souvenir.")
-
-            TabBarButton(
-                title: MainTab.map.title,
-                symbolName: MainTab.map.symbolName,
-                isSelected: selectedTab == .map,
-                action: onMapTap
-            )
+            .padding(.horizontal, 40)
+            .padding(.top, 14)
+            .padding(.bottom, 12)
+            .frame(maxWidth: .infinity)
+            .background(AppTheme.libraryTabBarFill)
         }
-        .padding(AppSpacing.small)
-        .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(AppTheme.surfaceOverlay)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(AppTheme.borderSubtle, lineWidth: 1)
-        )
-        .shadow(color: AppTheme.shadowColor, radius: 18, y: 6)
+        .background(AppTheme.libraryTabBarFill)
     }
 }
 
@@ -198,19 +183,15 @@ private struct TabBarButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: AppSpacing.xSmall) {
+            HStack(spacing: AppSpacing.small) {
                 Image(systemName: symbolName)
-                    .font(.headline)
+                    .font(.system(size: 20, weight: .semibold))
                 Text(title)
-                    .font(.footnote.weight(.semibold))
+                    .font(AppFont.ui(size: 15.5, weight: .semibold, relativeTo: .footnote))
             }
-            .foregroundStyle(isSelected ? AppTheme.textOnEmphasis : AppTheme.textSecondary)
+            .foregroundStyle(isSelected ? AppTheme.libraryTerracotta : AppTheme.libraryTextSecondary)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, AppSpacing.small)
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(isSelected ? AppTheme.surfaceEmphasis : Color.clear)
-            )
+            .padding(.vertical, 6)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)

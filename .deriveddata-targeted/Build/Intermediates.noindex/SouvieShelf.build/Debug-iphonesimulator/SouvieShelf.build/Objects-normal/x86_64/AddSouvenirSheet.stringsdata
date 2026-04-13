@@ -1,0 +1,320 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/Features/Souvenir/AddSouvenirSheet.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Couldn't complete that action",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Souvenir",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Souvenir",
+        "location": {
+          "startingColumn": 80,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 138
+        }
+      },
+      {
+        "comment": "",
+        "key": "Camera capture is available on iPhone hardware, not the simulator.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 190
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose from Library",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "Take Photo",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preparing your photo...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 198
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Date",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 267
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear Date",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "Title",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 282
+        }
+      },
+      {
+        "comment": "",
+        "key": "Story",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 285
+        }
+      },
+      {
+        "comment": "",
+        "key": "Importing photo...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 294
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Trip",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 406
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trips",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 381
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Trip",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 376
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create a trip to group souvenirs from the same journey together.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 383
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 410
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Trip",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 568
+        }
+      },
+      {
+        "comment": "",
+        "key": "Title",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 523
+        }
+      },
+      {
+        "comment": "",
+        "key": "Destination summary",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 526
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start date",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 533
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start date",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 538
+        }
+      },
+      {
+        "comment": "",
+        "key": "End date",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 545
+        }
+      },
+      {
+        "comment": "",
+        "key": "End date",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 550
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 572
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 589
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search places",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 704
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 640
+        }
+      },
+      {
+        "comment": "",
+        "key": "Results",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 669
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear %@",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 633
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use Current Location",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 657
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search for a place.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 677
+        }
+      },
+      {
+        "comment": "",
+        "key": "No places matched that search.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 680
+        }
+      },
+      {
+        "comment": "",
+        "key": "Searching...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 673
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 709
+        }
+      }
+    ]
+  },
+  "version": 1
+}

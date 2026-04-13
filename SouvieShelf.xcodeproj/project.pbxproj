@@ -33,6 +33,10 @@
 		000000000000000000000225 /* PartnerShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000128 /* PartnerShareSheet.swift */; };
 		000000000000000000000226 /* RecentlyDeletedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000129 /* RecentlyDeletedScreen.swift */; };
 		000000000000000000000227 /* SettingsScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000130 /* SettingsScreenTests.swift */; };
+		000000000000000000000228 /* LibraryMockupSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000131 /* LibraryMockupSupport.swift */; };
+		000000000000000000000229 /* LibraryScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000132 /* LibraryScreenTests.swift */; };
+		000000000000000000000230 /* LibraryMockupHomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000133 /* LibraryMockupHomeScreen.swift */; };
+		12B0888A2F899FB600730767 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12B088892F899FB600730767 /* Media.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +78,10 @@
 		000000000000000000000128 /* PartnerShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartnerShareSheet.swift; sourceTree = "<group>"; };
 		000000000000000000000129 /* RecentlyDeletedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentlyDeletedScreen.swift; sourceTree = "<group>"; };
 		000000000000000000000130 /* SettingsScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreenTests.swift; sourceTree = "<group>"; };
+		000000000000000000000131 /* LibraryMockupSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMockupSupport.swift; sourceTree = "<group>"; };
+		000000000000000000000132 /* LibraryScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScreenTests.swift; sourceTree = "<group>"; };
+		000000000000000000000133 /* LibraryMockupHomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMockupHomeScreen.swift; sourceTree = "<group>"; };
+		12B088892F899FB600730767 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +139,7 @@
 				000000000000000000000101 /* SouvieShelfApp.swift */,
 				000000000000000000000102 /* AppState.swift */,
 				000000000000000000000103 /* AppShell.swift */,
+				12B088892F899FB600730767 /* Media.xcassets */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -174,6 +183,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000113 /* AppStoreTests.swift */,
+				000000000000000000000132 /* LibraryScreenTests.swift */,
 				000000000000000000000118 /* PersistenceRepositoryTests.swift */,
 				000000000000000000000130 /* SettingsScreenTests.swift */,
 			);
@@ -195,15 +205,6 @@
 				000000000000000000000116 /* PersistenceRepositories.swift */,
 			);
 			path = Repositories;
-			sourceTree = "<group>";
-		};
-		000000000000000000000019 /* Persistence */ = {
-			isa = PBXGroup;
-			children = (
-				000000000000000000000115 /* PersistenceController.swift */,
-				000000000000000000000117 /* SouvieShelfModel.xcdatamodeld */,
-			);
-			path = Persistence;
 			sourceTree = "<group>";
 		};
 		000000000000000000000012 /* Services */ = {
@@ -235,6 +236,8 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000109 /* LibraryScreen.swift */,
+				000000000000000000000131 /* LibraryMockupSupport.swift */,
+				000000000000000000000133 /* LibraryMockupHomeScreen.swift */,
 			);
 			path = Library;
 			sourceTree = "<group>";
@@ -247,21 +250,29 @@
 			path = Map;
 			sourceTree = "<group>";
 		};
-		000000000000000000000022 /* Settings */ = {
+		000000000000000000000017 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				000000000000000000000127 /* SettingsScreen.swift */,
-				000000000000000000000128 /* PartnerShareSheet.swift */,
+				000000000000000000000111 /* AppTypes.swift */,
 			);
-			path = Settings;
+			path = Models;
 			sourceTree = "<group>";
 		};
-		000000000000000000000023 /* Deleted */ = {
+		000000000000000000000018 /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				000000000000000000000129 /* RecentlyDeletedScreen.swift */,
+				000000000000000000000112 /* AppDesign.swift */,
 			);
-			path = Deleted;
+			path = UI;
+			sourceTree = "<group>";
+		};
+		000000000000000000000019 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000115 /* PersistenceController.swift */,
+				000000000000000000000117 /* SouvieShelfModel.xcdatamodeld */,
+			);
+			path = Persistence;
 			sourceTree = "<group>";
 		};
 		000000000000000000000020 /* Souvenir */ = {
@@ -281,20 +292,21 @@
 			path = Trip;
 			sourceTree = "<group>";
 		};
-		000000000000000000000017 /* Models */ = {
+		000000000000000000000022 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				000000000000000000000111 /* AppTypes.swift */,
+				000000000000000000000127 /* SettingsScreen.swift */,
+				000000000000000000000128 /* PartnerShareSheet.swift */,
 			);
-			path = Models;
+			path = Settings;
 			sourceTree = "<group>";
 		};
-		000000000000000000000018 /* UI */ = {
+		000000000000000000000023 /* Deleted */ = {
 			isa = PBXGroup;
 			children = (
-				000000000000000000000112 /* AppDesign.swift */,
+				000000000000000000000129 /* RecentlyDeletedScreen.swift */,
 			);
-			path = UI;
+			path = Deleted;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -376,6 +388,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				12B0888A2F899FB600730767 /* Media.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,6 +408,8 @@
 				000000000000000000000207 /* AppDependencies.swift in Sources */,
 				000000000000000000000208 /* LaunchScreens.swift in Sources */,
 				000000000000000000000209 /* LibraryScreen.swift in Sources */,
+				000000000000000000000228 /* LibraryMockupSupport.swift in Sources */,
+				000000000000000000000230 /* LibraryMockupHomeScreen.swift in Sources */,
 				000000000000000000000210 /* MapScreen.swift in Sources */,
 				000000000000000000000211 /* AppTypes.swift in Sources */,
 				000000000000000000000212 /* AppDesign.swift in Sources */,
@@ -416,6 +431,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000213 /* AppStoreTests.swift in Sources */,
+				000000000000000000000229 /* LibraryScreenTests.swift in Sources */,
 				000000000000000000000219 /* PersistenceRepositoryTests.swift in Sources */,
 				000000000000000000000227 /* SettingsScreenTests.swift in Sources */,
 			);

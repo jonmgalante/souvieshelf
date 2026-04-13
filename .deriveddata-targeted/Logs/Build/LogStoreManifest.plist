@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>logFormatVersion</key>
+	<integer>11</integer>
+	<key>logs</key>
+	<dict>
+		<key>5EECF3E1-521E-4A7D-B751-9B143CFA97C3</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>5EECF3E1-521E-4A7D-B751-9B143CFA97C3.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>0</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>SouvieShelf project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>SouvieShelf</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Testing project SouvieShelf with scheme SouvieShelf</string>
+			<key>timeStartedRecording</key>
+			<real>797781404.27315402</real>
+			<key>timeStoppedRecording</key>
+			<real>797781420.63037801</real>
+			<key>title</key>
+			<string>Testing project SouvieShelf with scheme SouvieShelf</string>
+			<key>uniqueIdentifier</key>
+			<string>5EECF3E1-521E-4A7D-B751-9B143CFA97C3</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

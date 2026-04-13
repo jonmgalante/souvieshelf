@@ -1,0 +1,49 @@
+{
+  "" : {
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SouvieShelfTests-primary.dia",
+    "emit-module-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SouvieShelfTests-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SouvieShelfTests-primary-emit-module.dia",
+    "pch" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SouvieShelfTests-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SouvieShelfTests-primary.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/SouvieShelfTests/AppStoreTests.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/AppStoreTests.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/AppStoreTests.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/AppStoreTests.dia",
+    "index-unit-output-path" : "/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/AppStoreTests.o",
+    "llvm-bc" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/AppStoreTests.bc",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/AppStoreTests.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/AppStoreTests.swiftdeps",
+    "swiftmodule" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/AppStoreTests~partial.swiftmodule"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/SouvieShelfTests/LibraryScreenTests.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/LibraryScreenTests.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/LibraryScreenTests.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/LibraryScreenTests.dia",
+    "index-unit-output-path" : "/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/LibraryScreenTests.o",
+    "llvm-bc" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/LibraryScreenTests.bc",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/LibraryScreenTests.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/LibraryScreenTests.swiftdeps",
+    "swiftmodule" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/LibraryScreenTests~partial.swiftmodule"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/SouvieShelfTests/PersistenceRepositoryTests.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/PersistenceRepositoryTests.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/PersistenceRepositoryTests.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/PersistenceRepositoryTests.dia",
+    "index-unit-output-path" : "/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/PersistenceRepositoryTests.o",
+    "llvm-bc" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/PersistenceRepositoryTests.bc",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/PersistenceRepositoryTests.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/PersistenceRepositoryTests.swiftdeps",
+    "swiftmodule" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/PersistenceRepositoryTests~partial.swiftmodule"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/SouvieShelfTests/SettingsScreenTests.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SettingsScreenTests.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SettingsScreenTests.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SettingsScreenTests.dia",
+    "index-unit-output-path" : "/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SettingsScreenTests.o",
+    "llvm-bc" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SettingsScreenTests.bc",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SettingsScreenTests.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SettingsScreenTests.swiftdeps",
+    "swiftmodule" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelfTests.build/Objects-normal/x86_64/SettingsScreenTests~partial.swiftmodule"
+  }
+}

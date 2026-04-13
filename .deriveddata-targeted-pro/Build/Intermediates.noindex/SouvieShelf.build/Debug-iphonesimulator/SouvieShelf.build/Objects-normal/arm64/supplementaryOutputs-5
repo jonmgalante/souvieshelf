@@ -1,0 +1,30 @@
+{
+  "/Users/jongalante/Desktop/souvieshelf/Features/Library/LibraryMockupHomeScreen.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupHomeScreen.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupHomeScreen.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupHomeScreen.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupHomeScreen.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupHomeScreen.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Features/Library/LibraryMockupSupport.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupSupport.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupSupport.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupSupport.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupSupport.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryMockupSupport.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Features/Library/LibraryScreen.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryScreen.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryScreen.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryScreen.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryScreen.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/LibraryScreen.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/Features/Map/MapScreen.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/MapScreen.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/MapScreen.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/MapScreen.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/MapScreen.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/arm64/MapScreen.swiftdeps"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/Features/Map/MapScreen.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Map",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Opens the souvenir.",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 265
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -53,6 +53,32 @@ enum AppTheme {
     static let toolbarBackground = Color(uiColor: UIColorTokens.toolbarBackground)
     static let tabBarBackground = Color(uiColor: UIColorTokens.tabBarBackground)
     static let shadowColor = Color(uiColor: UIColorTokens.shadowColor)
+    static let libraryBackground = Color(uiColor: UIColorTokens.libraryBackground)
+    static let libraryPanelFill = Color(uiColor: UIColorTokens.libraryPanelFill)
+    static let libraryRaisedFill = Color(uiColor: UIColorTokens.libraryRaisedFill)
+    static let libraryFieldFill = Color(uiColor: UIColorTokens.libraryFieldFill)
+    static let libraryTabBarFill = Color(uiColor: UIColorTokens.libraryTabBarFill)
+    static let libraryTextPrimary = Color(uiColor: UIColorTokens.libraryTextPrimary)
+    static let libraryTextSecondary = Color(uiColor: UIColorTokens.libraryTextSecondary)
+    static let libraryTextMuted = Color(uiColor: UIColorTokens.libraryTextMuted)
+    static let libraryTerracotta = Color(uiColor: UIColorTokens.libraryTerracotta)
+    static let libraryTeal = Color(uiColor: UIColorTokens.libraryTeal)
+    static let libraryAmber = Color(uiColor: UIColorTokens.libraryAmber)
+    static let libraryBorder = Color(uiColor: UIColorTokens.libraryBorder)
+    static let libraryShadow = Color(uiColor: UIColorTokens.libraryShadow)
+    static let librarySharedBadgeFill = Color(uiColor: UIColorTokens.librarySharedBadgeFill)
+    static let libraryNeedsInfoBadgeFill = Color(uiColor: UIColorTokens.libraryNeedsInfoBadgeFill)
+    static let librarySelectionOutline = Color(uiColor: UIColorTokens.librarySelectionOutline)
+    static var libraryParchmentBackground: Color { libraryBackground }
+    static var libraryElevatedCardSurface: Color { libraryPanelFill }
+    static var librarySegmentedControlFill: Color { libraryFieldFill }
+    static var librarySearchFieldFill: Color { libraryFieldFill }
+    static var libraryAccentTerracotta: Color { libraryTerracotta }
+    static var librarySelectedTabAccent: Color { libraryTerracotta }
+    static var librarySelectedItemOutline: Color { librarySelectionOutline }
+    static var libraryFeatureIconTeal: Color { libraryTeal }
+    static var libraryWarningAmber: Color { libraryAmber }
+    static var libraryWordmarkText: Color { libraryTextPrimary }
 
     enum UIColorTokens {
         static let backgroundPrimary = dynamicColor(
@@ -134,6 +160,70 @@ enum AppTheme {
             light: AppPalette.espresso.opacity(0.12),
             dark: AppPalette.espresso.opacity(0.42)
         )
+        static let libraryBackground = dynamicColor(
+            light: UIColor(hex: 0xF1E4D1),
+            dark: UIColor(hex: 0x1F1A17)
+        )
+        static let libraryPanelFill = dynamicColor(
+            light: UIColor(hex: 0xF7EEDF).withAlphaComponent(0.95),
+            dark: UIColor(hex: 0x2A2420).withAlphaComponent(0.96)
+        )
+        static let libraryRaisedFill = dynamicColor(
+            light: UIColor(hex: 0xFCF6ED).withAlphaComponent(0.98),
+            dark: UIColor(hex: 0x342D28).withAlphaComponent(0.98)
+        )
+        static let libraryFieldFill = dynamicColor(
+            light: UIColor(hex: 0xEFE3D0).withAlphaComponent(0.96),
+            dark: UIColor(hex: 0x312A25).withAlphaComponent(0.96)
+        )
+        static let libraryTabBarFill = dynamicColor(
+            light: UIColor(hex: 0xF3E7D6).withAlphaComponent(0.98),
+            dark: UIColor(hex: 0x2A2320).withAlphaComponent(0.96)
+        )
+        static let libraryTextPrimary = dynamicColor(
+            light: UIColor(hex: 0x38332E),
+            dark: UIColor(hex: 0xF2E6D6)
+        )
+        static let libraryTextSecondary = dynamicColor(
+            light: UIColor(hex: 0x696158),
+            dark: UIColor(hex: 0xD0C3B3)
+        )
+        static let libraryTextMuted = dynamicColor(
+            light: UIColor(hex: 0x81776D),
+            dark: UIColor(hex: 0xA99989)
+        )
+        static let libraryTerracotta = dynamicColor(
+            light: UIColor(hex: 0xC86A46),
+            dark: UIColor(hex: 0xD88470)
+        )
+        static let libraryTeal = dynamicColor(
+            light: UIColor(hex: 0x2F7579),
+            dark: UIColor(hex: 0x6CA09B)
+        )
+        static let libraryAmber = dynamicColor(
+            light: UIColor(hex: 0xD79A33),
+            dark: UIColor(hex: 0xE3B253)
+        )
+        static let libraryBorder = dynamicColor(
+            light: UIColor(hex: 0x2E2A26).withAlphaComponent(0.08),
+            dark: UIColor(hex: 0xF2E6D6).withAlphaComponent(0.12)
+        )
+        static let libraryShadow = dynamicColor(
+            light: UIColor(hex: 0x2E2A26).withAlphaComponent(0.04),
+            dark: UIColor(hex: 0x000000).withAlphaComponent(0.26)
+        )
+        static let librarySharedBadgeFill = dynamicColor(
+            light: UIColor(hex: 0x2A6B6A).withAlphaComponent(0.14),
+            dark: UIColor(hex: 0x2A6B6A).withAlphaComponent(0.28)
+        )
+        static let libraryNeedsInfoBadgeFill = dynamicColor(
+            light: UIColor(hex: 0xD49124).withAlphaComponent(0.18),
+            dark: UIColor(hex: 0xD49124).withAlphaComponent(0.30)
+        )
+        static let librarySelectionOutline = dynamicColor(
+            light: UIColor(hex: 0xD16D48),
+            dark: UIColor(hex: 0xD88470)
+        )
 
         private static func dynamicColor(light: UIColor, dark: UIColor) -> UIColor {
             UIColor { traits in
@@ -175,10 +265,13 @@ extension View {
     }
 
     func appCardChrome(
-        cornerRadius: CGFloat = 20,
-        fill: Color = AppTheme.surfacePrimary
+        cornerRadius: CGFloat = 20
     ) -> some View {
-        modifier(AppCardChrome(cornerRadius: cornerRadius, fill: fill))
+        modifier(
+            AppCardChrome(
+                cornerRadius: cornerRadius
+            )
+        )
     }
 }
 
@@ -231,19 +324,80 @@ struct StateMessageView: View {
 
 private struct AppCardChrome: ViewModifier {
     let cornerRadius: CGFloat
-    let fill: Color
 
     func body(content: Content) -> some View {
         content
             .background {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(fill)
+                    .fill(AppTheme.surfacePrimary)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .stroke(AppTheme.borderSubtle, lineWidth: 1)
             }
             .shadow(color: AppTheme.shadowColor, radius: 18, y: 8)
+    }
+}
+
+enum AppFont {
+    static func wordmark(size: CGFloat, relativeTo textStyle: Font.TextStyle = .largeTitle) -> Font {
+        display(size: size, relativeTo: textStyle)
+    }
+
+    static func display(size: CGFloat, relativeTo textStyle: Font.TextStyle = .largeTitle) -> Font {
+        customFont(
+            candidates: [
+                "CormorantGaramond-SemiBold",
+                "Cormorant Garamond SemiBold",
+                "Cormorant Garamond"
+            ],
+            size: size,
+            relativeTo: textStyle,
+            fallback: .system(size: size, weight: .medium, design: .serif)
+        )
+    }
+
+    static func ui(size: CGFloat, weight: Font.Weight = .regular, relativeTo textStyle: Font.TextStyle = .body) -> Font {
+        let candidates: [String]
+        switch weight {
+        case .bold:
+            candidates = ["DMSans-Bold", "DM Sans Bold", "DM Sans"]
+        case .semibold:
+            candidates = ["DMSans-SemiBold", "DM Sans SemiBold", "DM Sans"]
+        case .medium:
+            candidates = ["DMSans-Medium", "DM Sans Medium", "DM Sans"]
+        default:
+            candidates = ["DMSans-Regular", "DM Sans Regular", "DM Sans"]
+        }
+
+        return customFont(
+            candidates: candidates,
+            size: size,
+            relativeTo: textStyle,
+            fallback: .system(size: size, weight: weight, design: .default)
+        )
+    }
+
+    static func metadata(size: CGFloat, relativeTo textStyle: Font.TextStyle = .caption) -> Font {
+        customFont(
+            candidates: ["CourierNewPSMT", "Courier New"],
+            size: size,
+            relativeTo: textStyle,
+            fallback: .system(size: size, weight: .regular, design: .monospaced)
+        )
+    }
+
+    private static func customFont(
+        candidates: [String],
+        size: CGFloat,
+        relativeTo textStyle: Font.TextStyle,
+        fallback: Font
+    ) -> Font {
+        guard let matchedName = candidates.first(where: { UIFont(name: $0, size: size) != nil }) else {
+            return fallback
+        }
+
+        return .custom(matchedName, size: size, relativeTo: textStyle)
     }
 }
 

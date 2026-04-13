@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'SouvieShelfTests' in project 'SouvieShelf'
+➜ Explicit dependency on target 'SouvieShelf' in project 'SouvieShelf'
+Target 'SouvieShelf' in project 'SouvieShelf' (no dependencies)

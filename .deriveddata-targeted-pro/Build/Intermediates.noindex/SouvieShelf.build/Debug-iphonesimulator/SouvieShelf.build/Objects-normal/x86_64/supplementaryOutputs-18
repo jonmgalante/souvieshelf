@@ -1,0 +1,23 @@
+{
+  "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/DerivedSources/CoreDataGenerated/SouvieShelfModel/PhotoAsset+CoreDataClass.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataClass.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataClass.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataClass.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataClass.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/PhotoAsset+CoreDataClass.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/DerivedSources/CoreDataGenerated/SouvieShelfModel/Souvenir+CoreDataClass.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataClass.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataClass.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataClass.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataClass.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataClass.swiftdeps"
+  },
+  "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/DerivedSources/CoreDataGenerated/SouvieShelfModel/Souvenir+CoreDataProperties.swift" : {
+    "const-values" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataProperties.swiftconstvalues",
+    "dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataProperties.d",
+    "diagnostics" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataProperties.dia",
+    "object" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataProperties.o",
+    "swift-dependencies" : "/Users/jongalante/Desktop/souvieshelf/.deriveddata-targeted-pro/Build/Intermediates.noindex/SouvieShelf.build/Debug-iphonesimulator/SouvieShelf.build/Objects-normal/x86_64/Souvenir+CoreDataProperties.swiftdeps"
+  }
+}

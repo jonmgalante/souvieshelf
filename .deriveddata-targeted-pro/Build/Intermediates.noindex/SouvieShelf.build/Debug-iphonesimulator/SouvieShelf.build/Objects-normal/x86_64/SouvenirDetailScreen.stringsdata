@@ -1,0 +1,256 @@
+{
+  "source": "/Users/jongalante/Desktop/souvieshelf/Features/Souvenir/SouvenirDetailScreen.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Delete this souvenir?",
+        "location": {
+          "startingColumn": 13,
+          "startingLine": 180
+        }
+      },
+      {
+        "comment": "",
+        "key": "Couldn't complete that action",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 194
+        }
+      },
+      {
+        "comment": "",
+        "key": "Opens the trip.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Story",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Souvenir",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Souvenir",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 190
+        }
+      },
+      {
+        "comment": "",
+        "key": "It will move to Recently Deleted and disappear from the Library, Map, and trip views until you restore it.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 195
+        }
+      },
+      {
+        "comment": "",
+        "key": "Couldn't complete that action",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 462
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Souvenir",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "Photos",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 275
+        }
+      },
+      {
+        "comment": "",
+        "key": "Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 355
+        }
+      },
+      {
+        "comment": "",
+        "key": "Story",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 377
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep at least one photo. If the current cover photo is removed, the next remaining photo becomes primary.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Photo",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "Importing photo...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 306
+        }
+      },
+      {
+        "comment": "",
+        "key": "Title",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Date",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 357
+        }
+      },
+      {
+        "comment": "",
+        "key": "Acquired on",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 363
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear Date",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 369
+        }
+      },
+      {
+        "comment": "",
+        "key": "Story",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 378
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 389
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 406
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 463
+        }
+      },
+      {
+        "comment": "",
+        "key": "Primary photo",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 891
+        }
+      },
+      {
+        "comment": "",
+        "key": "Additional photo",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 891
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove photo",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 887
+        }
+      },
+      {
+        "comment": "",
+        "key": "Removes this photo from the souvenir.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 888
+        }
+      }
+    ]
+  },
+  "version": 1
+}
