@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "grid-08-selected-bowl.jpg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

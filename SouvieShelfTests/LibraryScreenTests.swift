@@ -78,6 +78,87 @@ final class LibraryScreenTests: XCTestCase {
         XCTAssertEqual(goal.gridItems[8].badge, .needsInfo)
     }
 
+    func testExtractedLibraryHomeBundleOmitsSegmentedControl() {
+        let demo = LibraryHomePreviewFixture.extractedDemo
+
+        XCTAssertFalse(demo.segmentedControlPresent)
+        XCTAssertFalse(LibraryHomeDesign.Source.segmentedControlPresent)
+        XCTAssertTrue(LibraryHomeDesign.Source.mockDeviceChromePresentInExport)
+    }
+
+    func testExtractedLibraryHomeAssetsCoverRequiredBundleImages() {
+        XCTAssertEqual(LibraryHomeAsset.avatarProfile.extractedID, "avatar-profile")
+        XCTAssertEqual(LibraryHomeAsset.featureRecentTripAmalfiCoast.extractedID, "feature-recent-trip-amalfi-coast")
+        XCTAssertEqual(
+            LibraryHomeAsset.gridAssets.map(\.extractedID),
+            [
+                "grid-01-blue-ceramic-mug",
+                "grid-02-positano-lemon-plate",
+                "grid-03-kyoto-poster",
+                "grid-04-folded-rugs",
+                "grid-05-wooden-camel",
+                "grid-06-moroccan-lantern",
+                "grid-07-marrakech-bottle",
+                "grid-08-selected-bowl",
+                "grid-09-wallet-needs-info"
+            ]
+        )
+    }
+
+    func testExtractedLibraryHomePreviewContentMatchesVisibleBundle() {
+        let demo = LibraryHomePreviewFixture.extractedDemo
+
+        XCTAssertEqual(demo.wordmarkText, "SouvieShelf")
+        XCTAssertEqual(demo.addButtonLabel, "Add")
+        XCTAssertEqual(demo.searchPlaceholder, "Search souvenirs, places, trips, tags...")
+        XCTAssertEqual(
+            demo.featureRibbonItems.map(\.title),
+            ["Recent Trip", "On This Day", "Trips", "Collections", "Tags", "Needs Info"]
+        )
+        XCTAssertEqual(
+            demo.featureRibbonItems.map(\.secondaryText),
+            ["Amalfi Coast", "Mar 28", "12", "8", "24", "3"]
+        )
+        XCTAssertEqual(
+            demo.gridCards.map(\.asset),
+            [
+                .grid01BlueCeramicMug,
+                .grid02PositanoLemonPlate,
+                .grid03KyotoPoster,
+                .grid04FoldedRugs,
+                .grid05WoodenCamel,
+                .grid06MoroccanLantern,
+                .grid07MarrakechBottle,
+                .grid08SelectedBowl,
+                .grid09WalletNeedsInfo
+            ]
+        )
+        XCTAssertEqual(demo.gridCards[1].overlay?.title, "Positano, Italy")
+        XCTAssertEqual(demo.gridCards[1].overlay?.subtitle, "May 2024")
+        XCTAssertEqual(demo.gridCards[4].badge?.text, "Shared")
+        XCTAssertEqual(demo.gridCards[4].badge?.placement, .bottomCenter)
+        XCTAssertTrue(demo.gridCards[7].isSelected)
+        XCTAssertEqual(demo.gridCards[8].badge?.text, "Needs Info")
+        XCTAssertEqual(demo.gridCards[8].badge?.placement, .bottomRight)
+        XCTAssertEqual(
+            demo.bottomTabs,
+            [
+                LibraryHomeBottomTab(
+                    id: "library",
+                    title: "Library",
+                    icon: .libraryTab,
+                    isSelected: true
+                ),
+                LibraryHomeBottomTab(
+                    id: "map",
+                    title: "Map",
+                    icon: .mapTab,
+                    isSelected: false
+                )
+            ]
+        )
+    }
+
     func testContentStateIsEmptyWhenSouvenirsAndTripsAreBothMissing() {
         let state = LibraryContentState.resolve(
             souvenirCount: 0,

@@ -263,10 +263,11 @@ enum LibraryMockupReferences {
 
 struct LibraryMockupWordmark: View {
     var title: String = LibraryMockupReferences.goal.wordmark
+    var size: CGFloat = 39
 
     var body: some View {
         Text(title)
-            .font(AppFont.wordmark(size: 39, relativeTo: .largeTitle))
+            .font(AppFont.wordmark(size: size, relativeTo: .largeTitle))
             .foregroundStyle(AppTheme.libraryWordmarkText)
             .tracking(-1.0)
             .lineLimit(1)

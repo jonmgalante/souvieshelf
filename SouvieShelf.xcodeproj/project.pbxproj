@@ -36,6 +36,7 @@
 		000000000000000000000228 /* LibraryMockupSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000131 /* LibraryMockupSupport.swift */; };
 		000000000000000000000229 /* LibraryScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000132 /* LibraryScreenTests.swift */; };
 		000000000000000000000230 /* LibraryMockupHomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000133 /* LibraryMockupHomeScreen.swift */; };
+		000000000000000000000231 /* LibraryHomeDesignBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000134 /* LibraryHomeDesignBundle.swift */; };
 		12B0888A2F899FB600730767 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12B088892F899FB600730767 /* Media.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -81,6 +82,7 @@
 		000000000000000000000131 /* LibraryMockupSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMockupSupport.swift; sourceTree = "<group>"; };
 		000000000000000000000132 /* LibraryScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScreenTests.swift; sourceTree = "<group>"; };
 		000000000000000000000133 /* LibraryMockupHomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMockupHomeScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000134 /* LibraryHomeDesignBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryHomeDesignBundle.swift; sourceTree = "<group>"; };
 		12B088892F899FB600730767 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -236,6 +238,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000109 /* LibraryScreen.swift */,
+				000000000000000000000134 /* LibraryHomeDesignBundle.swift */,
 				000000000000000000000131 /* LibraryMockupSupport.swift */,
 				000000000000000000000133 /* LibraryMockupHomeScreen.swift */,
 			);
@@ -408,6 +411,7 @@
 				000000000000000000000207 /* AppDependencies.swift in Sources */,
 				000000000000000000000208 /* LaunchScreens.swift in Sources */,
 				000000000000000000000209 /* LibraryScreen.swift in Sources */,
+				000000000000000000000231 /* LibraryHomeDesignBundle.swift in Sources */,
 				000000000000000000000228 /* LibraryMockupSupport.swift in Sources */,
 				000000000000000000000230 /* LibraryMockupHomeScreen.swift in Sources */,
 				000000000000000000000210 /* MapScreen.swift in Sources */,

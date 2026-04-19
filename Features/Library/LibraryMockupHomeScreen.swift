@@ -396,7 +396,7 @@ private struct LibraryMockupBadge: View {
     }
 }
 
-private struct LibraryMockupBackground: View {
+struct LibraryMockupBackground: View {
     var body: some View {
         ZStack {
             LinearGradient(

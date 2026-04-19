@@ -147,31 +147,31 @@ private struct ShellTabBar: View {
     var body: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(AppTheme.libraryBorder.opacity(0.9))
-                .frame(height: 1)
+                .fill(LibraryHomeDesign.Colors.subtleBorder)
+                .frame(height: LibraryHomeDesign.Border.subtleWidth)
 
-            HStack(spacing: AppSpacing.medium) {
+            HStack(spacing: 0) {
                 TabBarButton(
                     title: MainTab.library.title,
-                    symbolName: "list.bullet.rectangle.portrait.fill",
+                    symbolName: LibraryHomeIcon.libraryTab.systemName,
                     isSelected: selectedTab == .library,
                     action: onLibraryTap
                 )
 
                 TabBarButton(
                     title: MainTab.map.title,
-                    symbolName: "mappin.and.ellipse",
+                    symbolName: LibraryHomeIcon.mapTab.systemName,
                     isSelected: selectedTab == .map,
                     action: onMapTap
                 )
             }
-            .padding(.horizontal, 40)
-            .padding(.top, 14)
-            .padding(.bottom, 12)
+            .padding(.horizontal, LibraryHomeDesign.Spacing.contentInsetX)
+            .padding(.top, LibraryHomeDesign.Spacing.bottomBarTopPadding)
+            .padding(.bottom, LibraryHomeDesign.Spacing.bottomBarBottomPadding)
             .frame(maxWidth: .infinity)
-            .background(AppTheme.libraryTabBarFill)
+            .background(LibraryHomeDesign.Colors.elevatedSurface)
         }
-        .background(AppTheme.libraryTabBarFill)
+        .background(LibraryHomeDesign.Colors.elevatedSurface)
     }
 }
 
@@ -183,17 +183,33 @@ private struct TabBarButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: AppSpacing.small) {
+            VStack(spacing: LibraryHomeDesign.Spacing.bottomBarItemGap) {
                 Image(systemName: symbolName)
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(
+                        .system(
+                            size: LibraryHomeDesign.Layout.bottomTabIconSize,
+                            weight: isSelected ? .semibold : .regular
+                        )
+                    )
                 Text(title)
-                    .font(AppFont.ui(size: 15.5, weight: .semibold, relativeTo: .footnote))
+                    .font(
+                        AppFont.ui(
+                            size: LibraryHomeDesign.Typography.tabLabelSize,
+                            weight: isSelected ? .medium : .regular,
+                            relativeTo: .footnote
+                        )
+                    )
             }
-            .foregroundStyle(isSelected ? AppTheme.libraryTerracotta : AppTheme.libraryTextSecondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
+            .foregroundStyle(
+                isSelected
+                    ? LibraryHomeDesign.Colors.terracotta
+                    : LibraryHomeDesign.Colors.inactiveIcon
+            )
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.vertical, 2)
         }
         .buttonStyle(.plain)
+        .contentShape(Rectangle())
         .accessibilityLabel(title)
         .accessibilityHint(isSelected ? "Current tab." : "Switches to the \(title) tab.")
     }

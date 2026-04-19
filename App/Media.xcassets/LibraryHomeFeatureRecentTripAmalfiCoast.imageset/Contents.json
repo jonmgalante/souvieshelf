@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "feature-recent-trip-amalfi-coast.jpg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

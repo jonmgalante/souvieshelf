@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "grid-01-blue-ceramic-mug.jpg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

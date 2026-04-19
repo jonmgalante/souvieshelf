@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "grid-03-kyoto-poster.jpg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

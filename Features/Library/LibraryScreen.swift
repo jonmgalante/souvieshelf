@@ -3,17 +3,31 @@ import SwiftUI
 import UIKit
 
 struct LibraryScreen: View {
+    @EnvironmentObject private var environment: AppEnvironment
     @ObservedObject var store: AppStore
+    @State private var selectedQuickAccess: LibraryQuickAccessSelection = .allItems
+    @State private var selectedItemFilter: LibraryItemFilter = .none
+    @State private var searchText = ""
+    @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
         Group {
-            if store.activeLibraryContext != nil {
-                LibraryMockupHomeScreen(
+            if let activeLibraryContext = store.activeLibraryContext {
+                LibraryHomeContent(
+                    activeLibraryContext: activeLibraryContext,
+                    persistenceController: environment.dependencies.persistenceController,
+                    selectedQuickAccess: $selectedQuickAccess,
+                    selectedItemFilter: $selectedItemFilter,
+                    searchText: $searchText,
+                    isSearchFieldFocused: $isSearchFieldFocused,
                     onAddTapped: {
                         store.presentAddSheet()
                     },
-                    onAvatarTapped: {
+                    onPartnerSettingsTapped: {
                         store.open(.settings)
+                    },
+                    onOpen: { route in
+                        store.open(route)
                     }
                 )
             } else {
@@ -28,7 +42,28 @@ struct LibraryScreen: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .appScreenBackground(AppTheme.libraryParchmentBackground)
+        .background {
+            LibraryHomeDesign.Colors.phoneSurface
+                .ignoresSafeArea()
+        }
+        .onChange(of: activeLibraryIdentity) { _, _ in
+            resetChromeState()
+        }
+    }
+
+    private var activeLibraryIdentity: String {
+        guard let activeLibraryContext = store.activeLibraryContext else {
+            return "none"
+        }
+
+        return "\(activeLibraryContext.libraryID.uuidString)|\(activeLibraryContext.storeScope.rawValue)"
+    }
+
+    private func resetChromeState() {
+        selectedQuickAccess = .allItems
+        selectedItemFilter = .none
+        searchText = ""
+        isSearchFieldFocused = false
     }
 }
 
@@ -39,6 +74,9 @@ private struct LibraryHomeContent: View {
     let onOpen: (AppRoute) -> Void
 
     @Binding private var selectedQuickAccess: LibraryQuickAccessSelection
+    @Binding private var selectedItemFilter: LibraryItemFilter
+    @Binding private var searchText: String
+    @FocusState.Binding private var isSearchFieldFocused: Bool
     @FetchRequest private var souvenirs: FetchedResults<Souvenir>
     @FetchRequest private var trips: FetchedResults<Trip>
 
@@ -46,6 +84,9 @@ private struct LibraryHomeContent: View {
         activeLibraryContext: ActiveLibraryContext,
         persistenceController: PersistenceController,
         selectedQuickAccess: Binding<LibraryQuickAccessSelection>,
+        selectedItemFilter: Binding<LibraryItemFilter>,
+        searchText: Binding<String>,
+        isSearchFieldFocused: FocusState<Bool>.Binding,
         onAddTapped: @escaping () -> Void,
         onPartnerSettingsTapped: @escaping () -> Void,
         onOpen: @escaping (AppRoute) -> Void
@@ -55,6 +96,9 @@ private struct LibraryHomeContent: View {
         self.onPartnerSettingsTapped = onPartnerSettingsTapped
         self.onOpen = onOpen
         self._selectedQuickAccess = selectedQuickAccess
+        self._selectedItemFilter = selectedItemFilter
+        self._searchText = searchText
+        self._isSearchFieldFocused = isSearchFieldFocused
         self._souvenirs = FetchRequest(
             fetchRequest: LibraryFetchRequestFactory.souvenirs(
                 for: activeLibraryContext,
@@ -77,13 +121,6 @@ private struct LibraryHomeContent: View {
 
     private var activeTrips: [Trip] {
         Array(trips)
-    }
-
-    private var contentState: LibraryContentState {
-        LibraryContentState.resolve(
-            souvenirCount: activeSouvenirs.count,
-            tripCount: activeTrips.count
-        )
     }
 
     private var tripMetricsByID: [UUID: LibraryTripMetrics] {
@@ -126,10 +163,6 @@ private struct LibraryHomeContent: View {
         return tripMetricsByID[tripID] ?? .empty
     }
 
-    private var isLibraryEmpty: Bool {
-        contentState == .empty
-    }
-
     private var recentTrip: Trip? {
         activeTrips.first
     }
@@ -149,51 +182,194 @@ private struct LibraryHomeContent: View {
         activeSouvenirs.filter(\.needsAttention).count
     }
 
+    private var normalizedSearchQuery: String? {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else {
+            return nil
+        }
+
+        return query.localizedLowercase
+    }
+
+    private var filteredSouvenirs: [Souvenir] {
+        activeSouvenirs
+            .filter { selectedItemFilter.matches($0) }
+            .filter { souvenir in
+                guard let normalizedSearchQuery else {
+                    return true
+                }
+
+                return souvenir.matchesLibrarySearch(query: normalizedSearchQuery)
+            }
+    }
+
+    private var filteredTrips: [Trip] {
+        activeTrips.filter { trip in
+            guard let normalizedSearchQuery else {
+                return true
+            }
+
+            return trip.matchesLibrarySearch(query: normalizedSearchQuery)
+        }
+    }
+
+    private var filteredPlaceGroups: [PlaceGroup] {
+        placeGroups.filter { placeGroup in
+            guard let normalizedSearchQuery else {
+                return true
+            }
+
+            return placeGroup.matchesLibrarySearch(query: normalizedSearchQuery)
+        }
+    }
+
+    private var hasVisibleSearchOrFilter: Bool {
+        normalizedSearchQuery != nil || selectedItemFilter != .none
+    }
+
     private var itemGridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+        Array(
+            repeating: GridItem(
+                .flexible(),
+                spacing: LibraryHomeDesign.Spacing.gridGap
+            ),
+            count: LibraryHomeDesign.Layout.gridColumnCount
+        )
+    }
+
+    private var filteredItemsEmptyState: LibraryEmptyPresentation {
+        if normalizedSearchQuery != nil {
+            return LibraryEmptyPresentation(
+                icon: "magnifyingglass",
+                title: "No results",
+                message: "Try a different search or clear the current filter."
+            )
+        }
+
+        switch selectedItemFilter {
+        case .onThisDay:
+            let dateLabel = Date.now.formatted(.dateTime.month(.abbreviated).day())
+            return LibraryEmptyPresentation(
+                icon: "calendar",
+                title: "Nothing from \(dateLabel)",
+                message: "No souvenirs in this library were saved on this date."
+            )
+        case .needsInfo:
+            return LibraryEmptyPresentation(
+                icon: "checkmark.circle",
+                title: "Everything looks filled in",
+                message: "No souvenirs in this library are missing their key details right now."
+            )
+        case .none:
+            return LibraryEmptyPresentation(
+                icon: "shippingbox.fill",
+                title: "No items yet",
+                message: "Souvenirs will land here as soon as you start adding keepsakes to this library."
+            )
+        }
+    }
+
+    private func openRecentTrip() {
+        selectedItemFilter = .none
+        isSearchFieldFocused = false
+
+        if let tripID = recentTrip?.id {
+            onOpen(.trip(tripID))
+        } else {
+            selectedQuickAccess = .trips
+        }
+    }
+
+    private func toggleTrips() {
+        selectedItemFilter = .none
+        isSearchFieldFocused = false
+        selectedQuickAccess = selectedQuickAccess == .trips ? .allItems : .trips
+    }
+
+    private func toggleCollections() {
+        selectedItemFilter = .none
+        isSearchFieldFocused = false
+        selectedQuickAccess = selectedQuickAccess == .collections ? .allItems : .collections
+    }
+
+    private func toggleItemFilter(_ filter: LibraryItemFilter) {
+        selectedQuickAccess = .allItems
+        isSearchFieldFocused = false
+        selectedItemFilter = selectedItemFilter == filter ? .none : filter
+    }
+
+    private func focusSearch() {
+        selectedQuickAccess = .allItems
+        selectedItemFilter = .none
+        isSearchFieldFocused = true
+    }
+
+    private func handleMicrophoneFallback() {
+        // The screen shows a microphone affordance, but the app does not support voice search.
+        // Focusing the real search field is the smallest honest fallback and still enables
+        // system keyboard dictation when available.
+        isSearchFieldFocused = true
     }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
                 LibraryHeader(
                     onAddTapped: onAddTapped,
                     onPartnerSettingsTapped: onPartnerSettingsTapped
                 )
+                .padding(.bottom, LibraryHomeDesign.Spacing.headerToSearch)
 
-                LibraryContextIndicator(storeScope: activeLibraryContext.storeScope)
+                LibrarySearchChrome(
+                    placeholder: LibraryHomePreviewFixture.extractedDemo.searchPlaceholder,
+                    searchText: $searchText,
+                    isSearchFieldFocused: _isSearchFieldFocused,
+                    onMicrophoneTapped: {
+                        handleMicrophoneFallback()
+                    }
+                )
+                .padding(.bottom, LibraryHomeDesign.Spacing.searchToRibbon)
 
-                if isLibraryEmpty {
-                    LibraryFirstSouvenirCard(
-                        onAddTapped: onAddTapped,
-                        onOpenSettings: onPartnerSettingsTapped
-                    )
-                } else {
-                    LibrarySearchChrome()
+                LibraryQuickAccessBand(
+                    recentTripTitle: recentTrip?.displayTitle,
+                    onOpenRecentTrip: {
+                        openRecentTrip()
+                    },
+                    onOpenOnThisDay: {
+                        toggleItemFilter(.onThisDay)
+                    },
+                    onOpenTrips: {
+                        toggleTrips()
+                    },
+                    onOpenCollections: {
+                        toggleCollections()
+                    },
+                    onOpenTags: {
+                        focusSearch()
+                    },
+                    onOpenNeedsInfo: {
+                        toggleItemFilter(.needsInfo)
+                    },
+                    isOnThisDaySelected: selectedItemFilter == .onThisDay,
+                    isTripsSelected: selectedQuickAccess == .trips,
+                    isCollectionsSelected: selectedQuickAccess == .collections,
+                    isTagsSelected: isSearchFieldFocused || normalizedSearchQuery != nil,
+                    isNeedsInfoSelected: selectedItemFilter == .needsInfo,
+                    onThisDaySubtitle: Date.now.formatted(.dateTime.month(.abbreviated).day()),
+                    tripCount: activeTrips.count,
+                    collectionCount: placeGroups.count,
+                    tagsSubtitle: normalizedSearchQuery == nil ? "Search" : "Active",
+                    needsInfoCount: needsInfoCount
+                )
+                .padding(.bottom, LibraryHomeDesign.Spacing.ribbonToGrid)
 
-                    LibraryQuickAccessBand(
-                        selectedQuickAccess: $selectedQuickAccess,
-                        recentTripTitle: recentTrip?.displayTitle ?? "No trips yet",
-                        recentTripThumbnailData: recentTrip.flatMap { tripMetrics(for: $0).coverThumbnailData },
-                        onOpenRecentTrip: recentTrip?.id == nil ? nil : {
-                            guard let tripID = recentTrip?.id else {
-                                return
-                            }
-
-                            onOpen(.trip(tripID))
-                        },
-                        tripCount: activeTrips.count,
-                        collectionCount: placeGroups.count,
-                        needsInfoCount: needsInfoCount
-                    )
-
-                    content
-                }
+                content
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 6)
-            .padding(.bottom, AppSpacing.large)
+            .padding(.horizontal, LibraryHomeDesign.Spacing.contentInsetX)
+            .padding(.top, LibraryHomeDesign.Spacing.statusToHeader)
+            .padding(.bottom, LibraryHomeDesign.Spacing.scrollContentBottomReserve)
         }
+        .scrollDismissesKeyboard(.interactively)
     }
 
     @ViewBuilder
@@ -210,9 +386,14 @@ private struct LibraryHomeContent: View {
 
     @ViewBuilder
     private var itemsContent: some View {
-        if activeSouvenirs.isEmpty {
-            switch selectedQuickAccess {
-            case .allItems, .trips, .collections:
+        if filteredSouvenirs.isEmpty {
+            if hasVisibleSearchOrFilter {
+                LibraryEmptyStateView(
+                    icon: filteredItemsEmptyState.icon,
+                    title: filteredItemsEmptyState.title,
+                    message: filteredItemsEmptyState.message
+                )
+            } else {
                 LibraryEmptyStateView(
                     icon: "shippingbox.fill",
                     title: "No items yet",
@@ -220,8 +401,8 @@ private struct LibraryHomeContent: View {
                 )
             }
         } else {
-            LazyVGrid(columns: itemGridColumns, spacing: 10) {
-                ForEach(activeSouvenirs, id: \.objectID) { souvenir in
+            LazyVGrid(columns: itemGridColumns, spacing: LibraryHomeDesign.Spacing.gridGap) {
+                ForEach(filteredSouvenirs, id: \.objectID) { souvenir in
                     if let souvenirID = souvenir.id {
                         Button {
                             onOpen(.souvenir(souvenirID))
@@ -240,20 +421,29 @@ private struct LibraryHomeContent: View {
                     }
                 }
             }
+            .padding(.bottom, 6)
         }
     }
 
     @ViewBuilder
     private var tripsContent: some View {
-        if activeTrips.isEmpty {
-            LibraryEmptyStateView(
-                icon: "suitcase.rolling.fill",
-                title: "No trips yet",
-                message: "Create a trip to group souvenirs from the same journey."
-            )
+        if filteredTrips.isEmpty {
+            if normalizedSearchQuery != nil {
+                LibraryEmptyStateView(
+                    icon: "magnifyingglass",
+                    title: "No trips found",
+                    message: "Try another search for a trip title or date."
+                )
+            } else {
+                LibraryEmptyStateView(
+                    icon: "suitcase.rolling.fill",
+                    title: "No trips yet",
+                    message: "Create a trip to group souvenirs from the same journey."
+                )
+            }
         } else {
             LazyVStack(spacing: AppSpacing.medium) {
-                ForEach(activeTrips, id: \.objectID) { trip in
+                ForEach(filteredTrips, id: \.objectID) { trip in
                     if let tripID = trip.id {
                         Button {
                             onOpen(.trip(tripID))
@@ -279,15 +469,23 @@ private struct LibraryHomeContent: View {
 
     @ViewBuilder
     private var placesContent: some View {
-        if placeGroups.isEmpty {
-            LibraryEmptyStateView(
-                icon: "mappin.and.ellipse",
-                title: "No places yet",
-                message: "Places appear automatically from each souvenir's \"Got it in\" location."
-            )
+        if filteredPlaceGroups.isEmpty {
+            if normalizedSearchQuery != nil {
+                LibraryEmptyStateView(
+                    icon: "magnifyingglass",
+                    title: "No collections found",
+                    message: "Try another search for a place or country."
+                )
+            } else {
+                LibraryEmptyStateView(
+                    icon: "mappin.and.ellipse",
+                    title: "No places yet",
+                    message: "Places appear automatically from each souvenir's \"Got it in\" location."
+                )
+            }
         } else {
             LazyVStack(spacing: AppSpacing.medium) {
-                ForEach(placeGroups) { placeGroup in
+                ForEach(filteredPlaceGroups) { placeGroup in
                     Button {
                         onOpen(.place(placeGroup.key))
                     } label: {
@@ -301,263 +499,265 @@ private struct LibraryHomeContent: View {
 }
 
 private struct LibraryHeader: View {
+    private enum Layout {
+        static let centeredWordmarkInset: CGFloat = 96
+        static let headerHitTarget: CGFloat = 44
+    }
+
     let onAddTapped: () -> Void
     let onPartnerSettingsTapped: () -> Void
 
     var body: some View {
         ZStack {
-            Text("SouvieShelf")
-                .font(AppFont.display(size: 32, relativeTo: .largeTitle))
-                .foregroundStyle(AppTheme.libraryTextPrimary)
+            Text(LibraryHomePreviewFixture.extractedDemo.wordmarkText)
+                .font(LibraryHomeDesign.Typography.wordmarkFont(relativeTo: .title3))
+                .tracking(LibraryHomeDesign.Typography.wordmarkTracking)
+                .foregroundStyle(LibraryHomeDesign.Colors.textPrimary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .padding(.horizontal, 100)
+                .minimumScaleFactor(0.75)
+                .padding(.horizontal, Layout.centeredWordmarkInset)
+                .frame(maxWidth: .infinity)
+                .accessibilityAddTraits(.isStaticText)
 
-            HStack {
+            HStack(spacing: 0) {
                 Button(action: onPartnerSettingsTapped) {
                     LibraryHeaderAvatarArt()
-                        .frame(width: 40, height: 40)
+                        .frame(
+                            width: LibraryHomeDesign.Layout.avatarSize,
+                            height: LibraryHomeDesign.Layout.avatarSize
+                        )
                 }
                 .buttonStyle(.plain)
+                .frame(
+                    width: Layout.headerHitTarget,
+                    height: Layout.headerHitTarget,
+                    alignment: .leading
+                )
+                .contentShape(Rectangle())
                 .accessibilityLabel("Settings")
                 .accessibilityIdentifier("library.header.settings")
 
-                Spacer()
+                Spacer(minLength: 0)
 
                 Button(action: onAddTapped) {
-                    HStack(spacing: AppSpacing.small) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 14, weight: .semibold))
+                    HStack(spacing: LibraryHomeDesign.Layout.addButtonInnerGap) {
+                        Image(systemName: LibraryHomeIcon.addPlus.systemName)
+                            .font(.system(size: LibraryHomeIcon.addPlus.pointSize, weight: .semibold))
 
-                        Text("Add")
-                            .font(AppFont.ui(size: 15, weight: .semibold, relativeTo: .body))
+                        Text(LibraryHomePreviewFixture.extractedDemo.addButtonLabel)
+                            .font(
+                                AppFont.ui(
+                                    size: LibraryHomeDesign.Typography.buttonLabelSize,
+                                    weight: .semibold,
+                                    relativeTo: .body
+                                )
+                            )
                     }
-                    .foregroundStyle(Color.white)
-                    .padding(.horizontal, 16)
-                    .frame(height: 40)
+                    .foregroundStyle(LibraryHomeDesign.Colors.textInverse)
+                    .padding(.leading, LibraryHomeDesign.Layout.addButtonLeadingPadding)
+                    .padding(.trailing, LibraryHomeDesign.Layout.addButtonTrailingPadding)
+                    .frame(height: LibraryHomeDesign.Layout.addButtonHeight)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(AppTheme.libraryTerracotta)
+                            .fill(LibraryHomeDesign.Colors.terracotta)
+                    )
+                    .shadow(
+                        color: LibraryHomeDesign.Colors.ribbonShadow,
+                        radius: LibraryHomeDesign.Shadow.ribbonRadius,
+                        y: LibraryHomeDesign.Shadow.ribbonYOffset
                     )
                 }
                 .buttonStyle(.plain)
+                .padding(.vertical, 3.5)
+                .contentShape(Rectangle())
                 .accessibilityLabel("Add Souvenir")
                 .accessibilityHint("Import a photo to start a new souvenir.")
                 .accessibilityIdentifier("library.header.add")
             }
         }
-        .padding(.top, 2)
-        .padding(.bottom, 2)
+        .frame(height: LibraryHomeDesign.Layout.headerHeight)
     }
 }
 
 private struct LibraryHeaderAvatarArt: View {
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(AppTheme.libraryRaisedFill)
-
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            AppTheme.libraryTerracotta.opacity(0.34),
-                            AppTheme.libraryAmber.opacity(0.18),
-                            AppTheme.libraryTeal.opacity(0.24)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .padding(1)
-
-            Circle()
-                .fill(Color.white.opacity(0.26))
-                .frame(width: 16, height: 16)
-                .offset(x: -8, y: -8)
-                .blur(radius: 2)
-
-            Circle()
-                .fill(AppTheme.libraryTeal.opacity(0.18))
-                .frame(width: 20, height: 20)
-                .offset(x: 9, y: 8)
-
-            Circle()
-                .stroke(Color.white.opacity(0.45), lineWidth: 0.8)
-                .padding(1)
-        }
-        .overlay(
-            Circle()
-                .stroke(AppTheme.libraryBorder, lineWidth: 1)
-        )
-    }
-}
-
-private struct LibraryContextIndicator: View {
-    let storeScope: StoreScope
-
-    private var isPersonalSelected: Bool {
-        storeScope == .privateLibrary
-    }
-
-    var body: some View {
-        HStack(spacing: AppSpacing.small) {
-            LibraryContextPill(
-                title: "Personal",
-                isSelected: isPersonalSelected
+        LibraryHomeAsset.avatarProfile.image
+            .resizable()
+            .scaledToFill()
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(Color.white.opacity(0.78), lineWidth: 1)
             )
-
-            LibraryContextPill(
-                title: "Shared",
-                isSelected: !isPersonalSelected
+            .overlay(
+                Circle()
+                    .stroke(LibraryHomeDesign.Colors.subtleBorder, lineWidth: LibraryHomeDesign.Border.subtleWidth)
             )
-        }
-        .padding(4)
-        .frame(maxWidth: 360)
-        .frame(maxWidth: .infinity, alignment: .center)
-        .background(
-            Capsule(style: .continuous)
-                .fill(AppTheme.libraryFieldFill)
-        )
-        .overlay(
-            Capsule(style: .continuous)
-                .stroke(AppTheme.libraryBorder, lineWidth: 1)
-        )
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Library context")
-        .accessibilityValue(isPersonalSelected ? "Personal" : "Shared")
-        .accessibilityIdentifier("library.context")
-    }
-}
-
-private struct LibraryContextPill: View {
-    let title: String
-    let isSelected: Bool
-
-    var body: some View {
-        Text(title)
-            .font(AppFont.ui(size: 16, weight: .semibold, relativeTo: .body))
-            .foregroundStyle(isSelected ? AppTheme.libraryTextPrimary : AppTheme.libraryTextSecondary)
-            .frame(maxWidth: .infinity)
-            .frame(height: 40)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(isSelected ? AppTheme.libraryRaisedFill : Color.clear)
+            .shadow(
+                color: LibraryHomeDesign.Colors.ribbonShadow,
+                radius: LibraryHomeDesign.Shadow.ribbonRadius,
+                y: LibraryHomeDesign.Shadow.ribbonYOffset
             )
     }
 }
 
 private struct LibrarySearchChrome: View {
+    let placeholder: String
+    @Binding var searchText: String
+    @FocusState.Binding var isSearchFieldFocused: Bool
+    let onMicrophoneTapped: () -> Void
+
     var body: some View {
-        HStack(spacing: AppSpacing.small) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(AppTheme.libraryTextMuted)
+        HStack(spacing: LibraryHomeDesign.Spacing.searchInnerGap) {
+            Image(systemName: LibraryHomeIcon.search.systemName)
+                .font(.system(size: LibraryHomeIcon.search.pointSize, weight: .regular))
+                .foregroundStyle(LibraryHomeDesign.Colors.textMuted)
 
-            Text("Search souvenirs, places, trips, tags...")
-                .font(AppFont.ui(size: 17, relativeTo: .body))
-                .foregroundStyle(AppTheme.libraryTextMuted)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
+            TextField(
+                "",
+                text: $searchText,
+                prompt: Text(placeholder)
+                    .foregroundStyle(LibraryHomeDesign.Colors.textMuted)
+            )
+            .font(
+                AppFont.ui(
+                    size: LibraryHomeDesign.Typography.searchPlaceholderSize,
+                    relativeTo: .body
+                )
+            )
+            .foregroundStyle(LibraryHomeDesign.Colors.textPrimary)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .submitLabel(.search)
+            .focused($isSearchFieldFocused)
+            .accessibilityLabel("Search library")
 
-            Spacer()
+            Button(action: onMicrophoneTapped) {
+                Image(systemName: LibraryHomeIcon.mic.systemName)
+                    .font(.system(size: LibraryHomeIcon.mic.pointSize, weight: .regular))
+                    .foregroundStyle(LibraryHomeDesign.Colors.textMuted.opacity(0.7))
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .accessibilityLabel("Search options")
+            .accessibilityHint("Focuses the search field. Use keyboard dictation if available.")
         }
-        .padding(.horizontal, AppSpacing.medium)
-        .frame(height: 52)
+        .padding(.horizontal, LibraryHomeDesign.Spacing.searchPaddingX)
+        .frame(height: LibraryHomeDesign.Layout.searchFieldHeight)
         .background(
-            RoundedRectangle(cornerRadius: 17, style: .continuous)
-                .fill(AppTheme.libraryFieldFill)
+            Capsule(style: .continuous)
+                .fill(LibraryHomeDesign.Colors.searchFieldFill)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 17, style: .continuous)
-                .stroke(AppTheme.libraryBorder, lineWidth: 1)
+            Capsule(style: .continuous)
+                .stroke(LibraryHomeDesign.Colors.subtleBorder, lineWidth: LibraryHomeDesign.Border.subtleWidth)
         )
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        .contentShape(Capsule(style: .continuous))
+        .onTapGesture {
+            isSearchFieldFocused = true
+        }
+        .accessibilityIdentifier("library.search")
     }
 }
 
 private struct LibraryQuickAccessBand: View {
-    @Binding var selectedQuickAccess: LibraryQuickAccessSelection
     let recentTripTitle: String?
-    let recentTripThumbnailData: Data?
-    let onOpenRecentTrip: (() -> Void)?
+    let onOpenRecentTrip: () -> Void
+    let onOpenOnThisDay: () -> Void
+    let onOpenTrips: () -> Void
+    let onOpenCollections: () -> Void
+    let onOpenTags: () -> Void
+    let onOpenNeedsInfo: () -> Void
+    let isOnThisDaySelected: Bool
+    let isTripsSelected: Bool
+    let isCollectionsSelected: Bool
+    let isTagsSelected: Bool
+    let isNeedsInfoSelected: Bool
+    let onThisDaySubtitle: String
     let tripCount: Int
     let collectionCount: Int
+    let tagsSubtitle: String
     let needsInfoCount: Int
 
     var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 0) {
             LibraryQuickAccessButton(
                 title: "Recent Trip",
-                subtitle: recentTripTitle,
-                symbolName: "photo",
-                tint: AppTheme.libraryTeal,
+                subtitle: recentTripTitle ?? "No trips yet",
+                artwork: .asset(.featureRecentTripAmalfiCoast),
+                accent: nil,
                 isSelected: false,
-                thumbnailData: recentTripThumbnailData,
                 action: onOpenRecentTrip
             )
 
             LibraryQuickAccessButton(
                 title: "On This Day",
-                subtitle: Date.now.formatted(.dateTime.month(.abbreviated).day()),
-                symbolName: "calendar",
-                tint: AppTheme.libraryTeal,
-                isSelected: false,
-                action: nil
+                subtitle: onThisDaySubtitle,
+                artwork: .icon(.onThisDay),
+                accent: .teal,
+                isSelected: isOnThisDaySelected,
+                action: onOpenOnThisDay
             )
 
             LibraryQuickAccessButton(
                 title: "Trips",
                 subtitle: "\(tripCount)",
-                symbolName: "suitcase",
-                tint: AppTheme.libraryTeal,
-                isSelected: selectedQuickAccess == .trips,
-                action: {
-                    selectedQuickAccess = selectedQuickAccess == .trips ? .allItems : .trips
-                }
+                artwork: .icon(.trips),
+                accent: .teal,
+                isSelected: isTripsSelected,
+                action: onOpenTrips
             )
 
             LibraryQuickAccessButton(
                 title: "Collections",
                 subtitle: "\(collectionCount)",
-                symbolName: "rectangle.stack",
-                tint: AppTheme.libraryTeal,
-                isSelected: selectedQuickAccess == .collections,
-                action: {
-                    selectedQuickAccess = selectedQuickAccess == .collections ? .allItems : .collections
-                }
+                artwork: .icon(.collections),
+                accent: .teal,
+                isSelected: isCollectionsSelected,
+                action: onOpenCollections
             )
 
             LibraryQuickAccessButton(
                 title: "Tags",
-                subtitle: nil,
-                symbolName: "tag",
-                tint: AppTheme.libraryTeal,
-                isSelected: false,
-                action: nil
+                subtitle: tagsSubtitle,
+                artwork: .icon(.tags),
+                accent: .teal,
+                isSelected: isTagsSelected,
+                action: onOpenTags
             )
 
             LibraryQuickAccessButton(
                 title: "Needs Info",
                 subtitle: "\(needsInfoCount)",
-                symbolName: "exclamationmark.circle",
-                tint: AppTheme.libraryTeal,
-                isSelected: false,
-                action: nil
+                artwork: .icon(.needsInfo),
+                accent: .amber,
+                isSelected: isNeedsInfoSelected,
+                action: onOpenNeedsInfo
             )
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 8)
+        .padding(.horizontal, LibraryHomeDesign.Spacing.ribbonPaddingX)
+        .padding(.top, LibraryHomeDesign.Spacing.ribbonPaddingTop)
+        .padding(.bottom, LibraryHomeDesign.Spacing.ribbonPaddingBottom)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppTheme.libraryRaisedFill)
+            RoundedRectangle(
+                cornerRadius: LibraryHomeDesign.CornerRadius.featureRibbon,
+                style: .continuous
+            )
+            .fill(LibraryHomeDesign.Colors.elevatedSurface)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(AppTheme.libraryBorder, lineWidth: 1)
+            RoundedRectangle(
+                cornerRadius: LibraryHomeDesign.CornerRadius.featureRibbon,
+                style: .continuous
+            )
+            .stroke(LibraryHomeDesign.Colors.subtleBorder, lineWidth: LibraryHomeDesign.Border.subtleWidth)
         )
-        .shadow(color: AppTheme.libraryShadow, radius: 10, y: 4)
+        .shadow(
+            color: LibraryHomeDesign.Colors.ribbonShadow,
+            radius: LibraryHomeDesign.Shadow.ribbonRadius,
+            y: LibraryHomeDesign.Shadow.ribbonYOffset
+        )
         .accessibilityLabel("Library sections")
         .accessibilityIdentifier("library.quick_access")
     }
@@ -565,59 +765,58 @@ private struct LibraryQuickAccessBand: View {
 
 private struct LibraryQuickAccessButton: View {
     let title: String
-    let subtitle: String?
-    let symbolName: String
-    let tint: Color
+    let subtitle: String
+    let artwork: LibraryHomeFeatureItem.Artwork
+    let accent: LibraryHomeAccent?
     let isSelected: Bool
-    let thumbnailData: Data?
-    let action: (() -> Void)?
+    let action: () -> Void
 
-    init(
-        title: String,
-        subtitle: String?,
-        symbolName: String,
-        tint: Color,
-        isSelected: Bool,
-        thumbnailData: Data? = nil,
-        action: (() -> Void)?
-    ) {
-        self.title = title
-        self.subtitle = subtitle
-        self.symbolName = symbolName
-        self.tint = tint
-        self.isSelected = isSelected
-        self.thumbnailData = thumbnailData
-        self.action = action
+    private var accentColor: Color {
+        switch accent {
+        case .amber:
+            LibraryHomeDesign.Colors.amber
+        case .teal:
+            LibraryHomeDesign.Colors.teal
+        case nil:
+            LibraryHomeDesign.Colors.textPrimary
+        }
     }
 
     private var accessibilityLabel: String {
-        if let subtitle,
-           !subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return "\(title), \(subtitle)"
-        }
-
-        return title
+        "\(title), \(subtitle)"
     }
 
     private var content: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: LibraryHomeDesign.Spacing.featureItemGap) {
             LibraryQuickAccessIcon(
-                symbolName: symbolName,
-                tint: tint,
-                thumbnailData: thumbnailData
+                artwork: artwork,
+                accentColor: accentColor
             )
 
             Text(title)
-                .font(AppFont.ui(size: 11.5, weight: .semibold, relativeTo: .caption))
-                .foregroundStyle(AppTheme.libraryTextPrimary)
+                .font(
+                    AppFont.ui(
+                        size: LibraryHomeDesign.Typography.featureTitleSize,
+                        weight: .semibold,
+                        relativeTo: .caption
+                    )
+                )
+                .foregroundStyle(LibraryHomeDesign.Colors.textPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .minimumScaleFactor(0.82)
+                .minimumScaleFactor(0.8)
+                .allowsTightening(true)
                 .frame(maxWidth: .infinity)
 
-            Text(subtitle ?? " ")
-                .font(AppFont.ui(size: 10.5, weight: .medium, relativeTo: .caption2))
-                .foregroundStyle(AppTheme.libraryTextMuted)
+            Text(subtitle)
+                .font(
+                    AppFont.ui(
+                        size: LibraryHomeDesign.Typography.featureSecondarySize,
+                        weight: accent == .amber ? .semibold : .medium,
+                        relativeTo: .caption2
+                    )
+                )
+                .foregroundStyle(accent == .amber ? LibraryHomeDesign.Colors.amber : LibraryHomeDesign.Colors.textMuted)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
@@ -626,61 +825,56 @@ private struct LibraryQuickAccessButton: View {
         .padding(.vertical, 6)
         .padding(.horizontal, 2)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(isSelected ? AppTheme.libraryFieldFill : Color.clear)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(isSelected ? accentColor.opacity(0.08) : Color.clear)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(isSelected ? AppTheme.librarySelectionOutline.opacity(0.2) : Color.clear, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(isSelected ? accentColor.opacity(0.18) : Color.clear, lineWidth: 1)
         )
-        .frame(minHeight: 104)
+        .frame(minHeight: LibraryHomeDesign.Layout.ribbonItemHeight, alignment: .top)
     }
 
-    @ViewBuilder
     var body: some View {
-        if let action {
-            Button(action: action) {
-                content
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(accessibilityLabel)
-        } else {
+        Button(action: action) {
             content
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(accessibilityLabel)
         }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
     }
 }
 
 private struct LibraryQuickAccessIcon: View {
-    let symbolName: String
-    let tint: Color
-    let thumbnailData: Data?
+    let artwork: LibraryHomeFeatureItem.Artwork
+    let accentColor: Color
 
     var body: some View {
         Group {
-            if let thumbnailData,
-               let image = UIImage(data: thumbnailData) {
-                Image(uiImage: image)
+            switch artwork {
+            case .asset(let asset):
+                asset.image
                     .resizable()
                     .scaledToFill()
-            } else {
+            case .icon(let icon):
                 ZStack {
                     Circle()
-                        .fill(AppTheme.libraryRaisedFill)
+                        .fill(LibraryHomeDesign.Colors.outerCanvas)
 
-                    Image(systemName: symbolName)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(tint)
+                    Image(systemName: icon.systemName)
+                        .font(.system(size: icon.pointSize, weight: .medium))
+                        .foregroundStyle(accentColor)
                 }
             }
         }
-        .frame(width: 50, height: 50)
+        .frame(
+            width: LibraryHomeDesign.Layout.ribbonCircleSize,
+            height: LibraryHomeDesign.Layout.ribbonCircleSize
+        )
         .clipShape(Circle())
         .overlay(
             Circle()
-                .stroke(AppTheme.libraryBorder, lineWidth: 1)
+                .stroke(LibraryHomeDesign.Colors.subtleBorder, lineWidth: LibraryHomeDesign.Border.subtleWidth)
         )
     }
 }
@@ -714,8 +908,31 @@ private struct LibraryGridTile: View {
     let souvenir: Souvenir
     let isSharedLibrary: Bool
 
+    private var overlayTitle: String? {
+        souvenir.gotItInSummary
+    }
+
+    private var overlaySubtitle: String? {
+        souvenir.shortAcquiredSummary
+    }
+
     private var showsMetadata: Bool {
-        souvenir.gotItInSummary != nil || souvenir.acquiredOrUpdatedSummary != nil
+        overlayTitle != nil || overlaySubtitle != nil
+    }
+
+    private var metadataGradientStart: Color {
+        let searchableText = [
+            overlayTitle?.localizedLowercase,
+            overlaySubtitle?.localizedLowercase
+        ]
+        .compactMap { $0 }
+        .joined(separator: " ")
+
+        if searchableText.contains("marrakech") || searchableText.contains("morocco") {
+            return LibraryHomeDesign.Colors.marrakechGradientStart
+        }
+
+        return LibraryHomeDesign.Colors.positanoGradientStart
     }
 
     private var accessibilityLabel: String {
@@ -750,74 +967,90 @@ private struct LibraryGridTile: View {
                 data: souvenir.primaryThumbnailData,
                 placeholderSystemImage: "shippingbox.fill"
             )
-
-            VStack(spacing: 0) {
-                Spacer()
-
-                HStack(alignment: .center, spacing: AppSpacing.small) {
-                    if isSharedLibrary {
-                        LibraryTileBadge(
-                            symbolName: "person.2.fill",
-                            title: "Shared",
-                            fill: AppTheme.librarySharedBadgeFill,
-                            foreground: AppTheme.libraryTeal
-                        )
-                    }
-
-                    Spacer()
-
-                    if souvenir.needsAttention {
-                        LibraryTileBadge(
-                            symbolName: "exclamationmark.circle.fill",
-                            title: "Needs Info",
-                            fill: AppTheme.libraryNeedsInfoBadgeFill,
-                            foreground: AppTheme.libraryAmber
-                        )
-                    }
-                }
-                .padding(.horizontal, AppSpacing.small)
-                .padding(.bottom, showsMetadata ? 8 : AppSpacing.small)
-
-                if showsMetadata {
-                    VStack(alignment: .leading, spacing: 1) {
-                        if let placeSummary = souvenir.gotItInSummary {
-                            Text(placeSummary)
-                                .font(AppFont.ui(size: 12, weight: .medium, relativeTo: .caption))
-                                .foregroundStyle(AppTheme.libraryTextPrimary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                        }
-
-                        if let dateSummary = souvenir.shortAcquiredSummary {
-                            Text(dateSummary)
-                                .font(AppFont.ui(size: 11, weight: .medium, relativeTo: .caption2))
-                                .foregroundStyle(AppTheme.libraryTextSecondary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 10)
-                    .padding(.top, 10)
-                    .padding(.bottom, 11)
-                    .background(
-                        LinearGradient(
-                            colors: [
-                                AppTheme.libraryRaisedFill.opacity(0),
-                                AppTheme.libraryRaisedFill.opacity(0.88),
-                                AppTheme.libraryRaisedFill.opacity(0.96)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                }
+        }
+        .overlay(alignment: .bottomLeading) {
+            if showsMetadata {
+                LibraryGridMetadataOverlay(
+                    title: overlayTitle,
+                    subtitle: overlaySubtitle,
+                    gradientStart: metadataGradientStart
+                )
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(alignment: .bottom) {
+            if isSharedLibrary {
+                LibraryTileBadge(style: .shared)
+                    .padding(.bottom, LibraryHomeDesign.Spacing.overlayInset)
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if souvenir.needsAttention {
+                LibraryTileBadge(style: .needsInfo)
+                    .padding(.trailing, LibraryHomeDesign.Spacing.overlayInset)
+                    .padding(.bottom, LibraryHomeDesign.Spacing.overlayInset)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: LibraryHomeDesign.CornerRadius.gridCard, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: LibraryHomeDesign.CornerRadius.gridCard, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
+    }
+}
+
+private struct LibraryGridMetadataOverlay: View {
+    let title: String?
+    let subtitle: String?
+    let gradientStart: Color
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            LinearGradient(
+                colors: [
+                    LibraryHomeDesign.Colors.overlayGradientEnd,
+                    LibraryHomeDesign.Colors.overlayGradientEnd,
+                    gradientStart
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            VStack(alignment: .leading, spacing: 1) {
+                if let title {
+                    Text(title)
+                        .font(
+                            AppFont.ui(
+                                size: LibraryHomeDesign.Typography.overlayTitleSize,
+                                weight: .medium,
+                                relativeTo: .caption
+                            )
+                        )
+                        .foregroundStyle(LibraryHomeDesign.Colors.textInverse)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                }
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(
+                            AppFont.ui(
+                                size: LibraryHomeDesign.Typography.overlaySubtitleSize,
+                                weight: .medium,
+                                relativeTo: .caption2
+                            )
+                        )
+                        .foregroundStyle(LibraryHomeDesign.Colors.textInverseSecondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                }
+            }
+            .padding(LibraryHomeDesign.Spacing.overlayInset)
+            .shadow(
+                color: LibraryHomeDesign.Colors.overlayTextShadow,
+                radius: LibraryHomeDesign.Shadow.overlayTextRadius,
+                y: LibraryHomeDesign.Shadow.overlayTextYOffset
+            )
+        }
+        .allowsHitTesting(false)
     }
 }
 
@@ -834,48 +1067,127 @@ private struct LibraryTileImage: View {
                     .scaledToFill()
             } else {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(AppTheme.libraryFieldFill)
+                    RoundedRectangle(
+                        cornerRadius: LibraryHomeDesign.CornerRadius.gridCard,
+                        style: .continuous
+                    )
+                    .fill(LibraryHomeDesign.Colors.outerCanvas)
 
                     Image(systemName: placeholderSystemImage)
                         .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(AppTheme.libraryTextMuted)
+                        .foregroundStyle(LibraryHomeDesign.Colors.textMuted)
                 }
             }
         }
         .frame(maxWidth: .infinity)
-        .aspectRatio(0.88, contentMode: .fit)
+        .aspectRatio(LibraryHomeDesign.Layout.gridCardAspectRatio, contentMode: .fit)
         .clipped()
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(AppTheme.libraryBorder.opacity(0.4), lineWidth: 0.6)
+            RoundedRectangle(
+                cornerRadius: LibraryHomeDesign.CornerRadius.gridCard,
+                style: .continuous
+            )
+            .stroke(LibraryHomeDesign.Colors.subtleBorder.opacity(0.5), lineWidth: 0.6)
         )
     }
 }
 
 private struct LibraryTileBadge: View {
-    let symbolName: String
-    let title: String
-    let fill: Color
-    let foreground: Color
+    enum Style: Equatable {
+        case shared
+        case needsInfo
+    }
+
+    let style: Style
+
+    private var symbolName: String {
+        switch style {
+        case .shared:
+            return LibraryHomeIcon.sharedBadge.systemName
+        case .needsInfo:
+            return LibraryHomeIcon.needsInfoBadge.systemName
+        }
+    }
+
+    private var title: String {
+        switch style {
+        case .shared:
+            return "Shared"
+        case .needsInfo:
+            return "Needs Info"
+        }
+    }
+
+    private var fill: Color {
+        switch style {
+        case .shared:
+            return LibraryHomeDesign.Colors.teal
+        case .needsInfo:
+            return LibraryHomeDesign.Colors.amber
+        }
+    }
+
+    private var foreground: Color {
+        LibraryHomeDesign.Colors.textInverse
+    }
+
+    private var height: CGFloat {
+        switch style {
+        case .shared:
+            return LibraryHomeDesign.Layout.sharedBadgeHeight
+        case .needsInfo:
+            return LibraryHomeDesign.Layout.needsInfoBadgeHeight
+        }
+    }
+
+    private var horizontalPadding: (leading: CGFloat, trailing: CGFloat) {
+        switch style {
+        case .shared:
+            return (
+                leading: LibraryHomeDesign.Layout.sharedBadgeLeadingPadding,
+                trailing: LibraryHomeDesign.Layout.sharedBadgeTrailingPadding
+            )
+        case .needsInfo:
+            return (
+                leading: LibraryHomeDesign.Layout.needsInfoBadgeLeadingPadding,
+                trailing: LibraryHomeDesign.Layout.needsInfoBadgeTrailingPadding
+            )
+        }
+    }
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: LibraryHomeDesign.Spacing.badgeGap) {
             Image(systemName: symbolName)
-                .font(.system(size: 11, weight: .semibold))
+                .font(.system(size: style == .shared ? LibraryHomeIcon.sharedBadge.pointSize : LibraryHomeIcon.needsInfoBadge.pointSize, weight: .semibold))
 
             Text(title)
-                .font(AppFont.ui(size: 12, weight: .semibold, relativeTo: .caption))
+                .font(
+                    AppFont.ui(
+                        size: LibraryHomeDesign.Typography.badgeLabelSize,
+                        weight: .semibold,
+                        relativeTo: .caption2
+                    )
+                )
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
         }
         .foregroundStyle(foreground)
-        .padding(.horizontal, 8)
-        .frame(height: 24)
+        .padding(.leading, horizontalPadding.leading)
+        .padding(.trailing, horizontalPadding.trailing)
+        .frame(height: height)
         .background(
             Capsule(style: .continuous)
                 .fill(fill)
         )
+        .overlay {
+            if style == .needsInfo {
+                Capsule(style: .continuous)
+                    .stroke(
+                        LibraryHomeDesign.Colors.amber,
+                        lineWidth: LibraryHomeDesign.Border.needsInfoBadgeWidth
+                    )
+            }
+        }
         .accessibilityHidden(true)
     }
 }
@@ -884,13 +1196,16 @@ private struct LibraryGridTileButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(
+                    cornerRadius: LibraryHomeDesign.CornerRadius.gridCard,
+                    style: .continuous
+                )
                     .stroke(
-                        configuration.isPressed ? AppTheme.librarySelectionOutline : Color.clear,
-                        lineWidth: 0.9
+                        configuration.isPressed ? LibraryHomeDesign.Colors.terracotta : Color.clear,
+                        lineWidth: LibraryHomeDesign.Border.selectedCardOutlineWidth
                     )
             )
-            .scaleEffect(configuration.isPressed ? 0.99 : 1)
+            .scaleEffect(configuration.isPressed ? 0.985 : 1)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }
@@ -901,10 +1216,33 @@ private enum LibraryQuickAccessSelection: Equatable {
     case collections
 }
 
+private enum LibraryItemFilter: Equatable {
+    case none
+    case onThisDay
+    case needsInfo
+
+    func matches(_ souvenir: Souvenir) -> Bool {
+        switch self {
+        case .none:
+            return true
+        case .onThisDay:
+            return souvenir.isOnThisDayMatch
+        case .needsInfo:
+            return souvenir.needsAttention
+        }
+    }
+}
+
 private enum LibraryPrimarySurface {
     case items
     case trips
     case places
+}
+
+private struct LibraryEmptyPresentation {
+    let icon: String
+    let title: String
+    let message: String
 }
 
 struct PlaceDetailScreen: View {
@@ -1668,6 +2006,34 @@ private extension Souvenir {
         title.normalizedDisplayValue == nil || visibleTripTitle == nil || gotItInSummary == nil
     }
 
+    var isOnThisDayMatch: Bool {
+        guard let acquiredDate else {
+            return false
+        }
+
+        let calendar = Calendar.autoupdatingCurrent
+        let acquiredComponents = calendar.dateComponents([.month, .day], from: acquiredDate)
+        let currentComponents = calendar.dateComponents([.month, .day], from: .now)
+        return acquiredComponents.month == currentComponents.month && acquiredComponents.day == currentComponents.day
+    }
+
+    var librarySearchableText: String {
+        [
+            displayTitle,
+            visibleTripTitle,
+            gotItInSummary,
+            story.normalizedDisplayValue,
+            acquiredOrUpdatedSummary,
+            needsAttention ? "needs info" : nil
+        ]
+        .compactMap { $0 }
+        .joined(separator: " ")
+    }
+
+    func matchesLibrarySearch(query: String) -> Bool {
+        librarySearchableText.localizedLowercase.contains(query)
+    }
+
     var primaryThumbnailData: Data? {
         sortedPhotoAssets.first(where: { $0.thumbnailData != nil })?.thumbnailData
             ?? sortedPhotoAssets.first(where: { $0.displayImageData != nil })?.displayImageData
@@ -1742,6 +2108,32 @@ private extension Trip {
             endDate: endDate
         )
     }
+
+    var librarySearchableText: String {
+        [
+            displayTitle,
+            dateRangeSummary,
+            TripPresentationLogic.destinationSummary(from: destinationSummary)
+        ]
+        .compactMap { $0 }
+        .joined(separator: " ")
+    }
+
+    func matchesLibrarySearch(query: String) -> Bool {
+        librarySearchableText.localizedLowercase.contains(query)
+    }
+}
+
+private extension PlaceGroup {
+    var librarySearchableText: String {
+        [title]
+            .compactMap { $0 }
+            .joined(separator: " ")
+    }
+
+    func matchesLibrarySearch(query: String) -> Bool {
+        librarySearchableText.localizedLowercase.contains(query)
+    }
 }
 
 private extension String {
@@ -1759,10 +2151,257 @@ private extension Optional where Wrapped == String {
     }
 }
 
+/// Preview/demo only. Renders the exact extracted Library Home sample content without touching
+/// the live Core Data-backed Library screen or production app state.
+private struct LibraryHomeExtractedDemoPreview: View {
+    private let fixture = LibraryHomePreviewFixture.extractedDemo
+    @State private var searchText = ""
+    @FocusState private var isSearchFieldFocused: Bool
+
+    private var itemGridColumns: [GridItem] {
+        Array(
+            repeating: GridItem(
+                .flexible(),
+                spacing: LibraryHomeDesign.Spacing.gridGap
+            ),
+            count: LibraryHomeDesign.Layout.gridColumnCount
+        )
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    LibraryHeader(
+                        onAddTapped: {},
+                        onPartnerSettingsTapped: {}
+                    )
+                    .padding(.bottom, LibraryHomeDesign.Spacing.headerToSearch)
+
+                    LibrarySearchChrome(
+                        placeholder: fixture.searchPlaceholder,
+                        searchText: $searchText,
+                        isSearchFieldFocused: $isSearchFieldFocused,
+                        onMicrophoneTapped: {
+                            isSearchFieldFocused = true
+                        }
+                    )
+                    .padding(.bottom, LibraryHomeDesign.Spacing.searchToRibbon)
+
+                    LibraryHomeExtractedDemoRibbon(
+                        items: fixture.featureRibbonItems
+                    )
+                    .padding(.bottom, LibraryHomeDesign.Spacing.ribbonToGrid)
+
+                    LazyVGrid(columns: itemGridColumns, spacing: LibraryHomeDesign.Spacing.gridGap) {
+                        ForEach(fixture.gridCards) { card in
+                            LibraryHomeExtractedDemoGridTile(card: card)
+                        }
+                    }
+                }
+                .padding(.horizontal, LibraryHomeDesign.Spacing.contentInsetX)
+                .padding(.top, LibraryHomeDesign.Spacing.statusToHeader)
+                .padding(.bottom, LibraryHomeDesign.Spacing.scrollContentBottomReserve)
+            }
+
+            LibraryHomeExtractedDemoBottomBar(
+                tabs: fixture.bottomTabs
+            )
+        }
+        .frame(
+            width: LibraryHomeDesign.Layout.frameWidth,
+            height: LibraryHomeDesign.Layout.frameHeight
+        )
+        .background(LibraryHomeDesign.Colors.phoneSurface)
+    }
+}
+
+private struct LibraryHomeExtractedDemoRibbon: View {
+    let items: [LibraryHomeFeatureItem]
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(items) { item in
+                LibraryQuickAccessButton(
+                    title: item.title,
+                    subtitle: item.secondaryText,
+                    artwork: item.artwork,
+                    accent: item.accent,
+                    isSelected: false,
+                    action: {}
+                )
+            }
+        }
+        .padding(.horizontal, LibraryHomeDesign.Spacing.ribbonPaddingX)
+        .padding(.top, LibraryHomeDesign.Spacing.ribbonPaddingTop)
+        .padding(.bottom, LibraryHomeDesign.Spacing.ribbonPaddingBottom)
+        .background(
+            RoundedRectangle(
+                cornerRadius: LibraryHomeDesign.CornerRadius.featureRibbon,
+                style: .continuous
+            )
+            .fill(LibraryHomeDesign.Colors.elevatedSurface)
+        )
+        .overlay(
+            RoundedRectangle(
+                cornerRadius: LibraryHomeDesign.CornerRadius.featureRibbon,
+                style: .continuous
+            )
+            .stroke(LibraryHomeDesign.Colors.subtleBorder, lineWidth: LibraryHomeDesign.Border.subtleWidth)
+        )
+        .shadow(
+            color: LibraryHomeDesign.Colors.ribbonShadow,
+            radius: LibraryHomeDesign.Shadow.ribbonRadius,
+            y: LibraryHomeDesign.Shadow.ribbonYOffset
+        )
+    }
+}
+
+private struct LibraryHomeExtractedDemoGridTile: View {
+    let card: LibraryHomeGridCard
+
+    private var gradientStartColor: Color {
+        let searchableText = [
+            card.overlay?.title.localizedLowercase,
+            card.overlay?.subtitle.localizedLowercase
+        ]
+        .compactMap { $0 }
+        .joined(separator: " ")
+
+        if searchableText.contains("marrakech") || searchableText.contains("morocco") {
+            return LibraryHomeDesign.Colors.marrakechGradientStart
+        }
+
+        return LibraryHomeDesign.Colors.positanoGradientStart
+    }
+
+    var body: some View {
+        ZStack {
+            card.asset.image
+                .resizable()
+                .scaledToFill()
+        }
+        .frame(maxWidth: .infinity)
+        .aspectRatio(LibraryHomeDesign.Layout.gridCardAspectRatio, contentMode: .fit)
+        .overlay(alignment: .bottomLeading) {
+            if let overlay = card.overlay {
+                LibraryGridMetadataOverlay(
+                    title: overlay.title,
+                    subtitle: overlay.subtitle,
+                    gradientStart: gradientStartColor
+                )
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if let badge = card.badge,
+               badge.placement == .bottomCenter {
+                badgeView(for: badge)
+                    .padding(.bottom, LibraryHomeDesign.Spacing.overlayInset)
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if let badge = card.badge,
+               badge.placement == .bottomRight {
+                badgeView(for: badge)
+                    .padding(.trailing, LibraryHomeDesign.Spacing.overlayInset)
+                    .padding(.bottom, LibraryHomeDesign.Spacing.overlayInset)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: LibraryHomeDesign.CornerRadius.gridCard, style: .continuous))
+        .overlay(
+            RoundedRectangle(
+                cornerRadius: LibraryHomeDesign.CornerRadius.gridCard,
+                style: .continuous
+            )
+            .stroke(LibraryHomeDesign.Colors.subtleBorder.opacity(0.5), lineWidth: 0.6)
+        )
+        .overlay {
+            if card.isSelected {
+                RoundedRectangle(
+                    cornerRadius: LibraryHomeDesign.CornerRadius.gridCard,
+                    style: .continuous
+                )
+                .stroke(
+                    LibraryHomeDesign.Colors.terracotta,
+                    lineWidth: LibraryHomeDesign.Border.selectedCardOutlineWidth
+                )
+                .padding(LibraryHomeDesign.Border.selectedCardOutlineInsetOffset)
+            }
+        }
+        .accessibilityLabel(card.sourceAnnotation)
+    }
+
+    @ViewBuilder
+    private func badgeView(for badge: LibraryHomeGridCard.Badge) -> some View {
+        switch badge.style {
+        case .shared:
+            LibraryTileBadge(style: .shared)
+        case .needsInfo:
+            LibraryTileBadge(style: .needsInfo)
+        }
+    }
+}
+
+private struct LibraryHomeExtractedDemoBottomBar: View {
+    private enum Layout {
+        static let height: CGFloat = 79.5
+        static let borderWidth: CGFloat = 1
+    }
+
+    let tabs: [LibraryHomeBottomTab]
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(tabs) { tab in
+                VStack(spacing: LibraryHomeDesign.Spacing.bottomBarItemGap) {
+                    Image(systemName: tab.icon.systemName)
+                        .font(
+                            .system(
+                                size: tab.icon.pointSize,
+                                weight: tab.isSelected ? .medium : .regular
+                            )
+                        )
+
+                    Text(tab.title)
+                        .font(
+                            AppFont.ui(
+                                size: LibraryHomeDesign.Typography.tabLabelSize,
+                                weight: tab.isSelected ? .medium : .regular,
+                                relativeTo: .caption2
+                            )
+                        )
+                }
+                .foregroundStyle(
+                    tab.isSelected
+                        ? LibraryHomeDesign.Colors.terracotta
+                        : LibraryHomeDesign.Colors.inactiveIcon
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.top, LibraryHomeDesign.Spacing.bottomBarTopPadding)
+                .padding(.bottom, LibraryHomeDesign.Spacing.bottomBarBottomPadding)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: Layout.height, alignment: .top)
+        .background(LibraryHomeDesign.Colors.phoneSurface)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(LibraryHomeDesign.Colors.subtleBorder)
+                .frame(height: Layout.borderWidth)
+        }
+    }
+}
+
 struct LibraryScreen_Previews: PreviewProvider {
     static var previews: some View {
         let environment = AppEnvironment.preview(.ready)
-        return LibraryScreen(store: environment.appStore)
-            .environmentObject(environment)
+        return Group {
+            LibraryScreen(store: environment.appStore)
+                .environmentObject(environment)
+                .previewDisplayName("Library Live")
+
+            LibraryHomeExtractedDemoPreview()
+                .previewDisplayName("Library Extracted Demo")
+        }
     }
 }
