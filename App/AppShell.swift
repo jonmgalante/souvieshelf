@@ -6,20 +6,34 @@ struct AppShell: View {
 
     var body: some View {
         NavigationStack(path: $store.routePath) {
-            currentScreen
-                .navigationDestination(for: AppRoute.self) { route in
-                    destination(for: route)
-                }
+            TabView(selection: selectedTabBinding) {
+                libraryTab
+                    .tabItem {
+                        Label(
+                            MainTab.library.title,
+                            systemImage: LibraryHomeIcon.libraryTab.systemName
+                        )
+                    }
+                    .tag(MainTab.library)
+
+                mapTab
+                    .tabItem {
+                        Label(
+                            MainTab.map.title,
+                            systemImage: "globe.americas"
+                        )
+                    }
+                    .tag(MainTab.map)
+            }
+            .tint(AppTheme.librarySelectedTabAccent)
+            .toolbarBackground(LibraryHomeDesign.Colors.elevatedSurface, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
+            .navigationDestination(for: AppRoute.self) { route in
+                destination(for: route)
+            }
         }
         .appScreenBackground()
         .appNavigationChrome()
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            ShellTabBar(
-                selectedTab: store.selectedTab,
-                onLibraryTap: { store.selectTab(.library) },
-                onMapTap: { store.selectTab(.map) }
-            )
-        }
         .sheet(isPresented: $store.isShowingAddSheet) {
             if let activeLibraryContext = store.activeLibraryContext {
                 AddSouvenirSheet(
@@ -33,12 +47,31 @@ struct AppShell: View {
         }
     }
 
+    private var selectedTabBinding: Binding<MainTab> {
+        Binding(
+            get: { store.selectedTab },
+            set: { newValue in
+                guard store.selectedTab != newValue else {
+                    return
+                }
+
+                store.selectTab(newValue)
+            }
+        )
+    }
+
     @ViewBuilder
-    private var currentScreen: some View {
-        switch store.selectedTab {
-        case .library:
+    private var libraryTab: some View {
+        if store.selectedTab == .library {
             LibraryScreen(store: store)
-        case .map:
+        } else {
+            Color.clear
+        }
+    }
+
+    @ViewBuilder
+    private var mapTab: some View {
+        if store.selectedTab == .map {
             if let activeLibraryContext = store.activeLibraryContext {
                 MapScreen(
                     filterContext: store.mapFilterContext,
@@ -56,6 +89,8 @@ struct AppShell: View {
                 )
                 .padding(AppSpacing.large)
             }
+        } else {
+            Color.clear
         }
     }
 
@@ -136,82 +171,6 @@ struct AppShell: View {
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-    }
-}
-
-private struct ShellTabBar: View {
-    let selectedTab: MainTab
-    let onLibraryTap: () -> Void
-    let onMapTap: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Rectangle()
-                .fill(LibraryHomeDesign.Colors.subtleBorder)
-                .frame(height: LibraryHomeDesign.Border.subtleWidth)
-
-            HStack(spacing: 0) {
-                TabBarButton(
-                    title: MainTab.library.title,
-                    symbolName: LibraryHomeIcon.libraryTab.systemName,
-                    isSelected: selectedTab == .library,
-                    action: onLibraryTap
-                )
-
-                TabBarButton(
-                    title: MainTab.map.title,
-                    symbolName: LibraryHomeIcon.mapTab.systemName,
-                    isSelected: selectedTab == .map,
-                    action: onMapTap
-                )
-            }
-            .padding(.horizontal, LibraryHomeDesign.Spacing.contentInsetX)
-            .padding(.top, LibraryHomeDesign.Spacing.bottomBarTopPadding)
-            .padding(.bottom, LibraryHomeDesign.Spacing.bottomBarBottomPadding)
-            .frame(maxWidth: .infinity)
-            .background(LibraryHomeDesign.Colors.elevatedSurface)
-        }
-        .background(LibraryHomeDesign.Colors.elevatedSurface)
-    }
-}
-
-private struct TabBarButton: View {
-    let title: String
-    let symbolName: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: LibraryHomeDesign.Spacing.bottomBarItemGap) {
-                Image(systemName: symbolName)
-                    .font(
-                        .system(
-                            size: LibraryHomeDesign.Layout.bottomTabIconSize,
-                            weight: isSelected ? .semibold : .regular
-                        )
-                    )
-                Text(title)
-                    .font(
-                        AppFont.ui(
-                            size: LibraryHomeDesign.Typography.tabLabelSize,
-                            weight: isSelected ? .medium : .regular,
-                            relativeTo: .footnote
-                        )
-                    )
-            }
-            .foregroundStyle(
-                isSelected
-                    ? LibraryHomeDesign.Colors.terracotta
-                    : LibraryHomeDesign.Colors.inactiveIcon
-            )
-            .frame(maxWidth: .infinity, minHeight: 44)
-            .padding(.vertical, 2)
-        }
-        .buttonStyle(.plain)
-        .contentShape(Rectangle())
-        .accessibilityLabel(title)
-        .accessibilityHint(isSelected ? "Current tab." : "Switches to the \(title) tab.")
     }
 }
 
