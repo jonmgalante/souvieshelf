@@ -57,44 +57,18 @@ struct TripDetailScreen: View {
         trip.flatMap(TripEditSnapshot.init)
     }
 
-    private var coverPhotoData: Data? {
-        souvenirs.lazy.compactMap(\.tripHeroImageData).first
-    }
-
     var body: some View {
         Group {
             if let trip {
                 ScrollView {
                     VStack(alignment: .leading, spacing: AppSpacing.large) {
-                        if let coverPhotoData {
-                            TripCoverPreview(photoData: coverPhotoData)
-                        }
+                        TripHeader(trip: trip, cover: souvenirs.first { $0.galleryPhoto != nil },
+                                   souvenirCount: souvenirs.count, mappedCount: souvenirs.filter {
+                                       MapPresentationLogic.coordinate(latitude: $0.gotItInLatitude, longitude: $0.gotItInLongitude) != nil
+                                   }.count, onViewOnMap: onViewOnMap)
 
-                        TripSummaryCard(
-                            trip: trip,
-                            souvenirCount: souvenirs.count,
-                            onViewOnMap: onViewOnMap
-                        )
-
-                        TripSouvenirsCard(
-                            souvenirs: Array(souvenirs),
-                            onOpenRoute: onOpenRoute
-                        )
-
-                        if canEdit {
-                            Button(role: .destructive) {
-                                isShowingDeleteConfirmation = true
-                            } label: {
-                                if isDeleting {
-                                    ProgressView()
-                                        .frame(maxWidth: .infinity)
-                                } else {
-                                    Text("Delete Trip")
-                                        .frame(maxWidth: .infinity)
-                                }
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(isDeleting)
+                        TripSouvenirList(souvenirs: Array(souvenirs)) { id in
+                            onOpenRoute(.tripSouvenir(tripID: tripID, souvenirID: id))
                         }
                     }
                     .padding(AppSpacing.large)
@@ -110,14 +84,26 @@ struct TripDetailScreen: View {
                 }
             }
         }
-        .navigationTitle(trip.map { TripPresentationLogic.displayTitle(from: $0.title) } ?? "Trip")
+        .foregroundStyle(GalleryTheme.ink)
+        .tint(GalleryTheme.accent)
+        .background { GalleryTheme.canvas.ignoresSafeArea() }
+        .navigationTitle("Trip")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if canEdit, trip != nil {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
                     Button("Edit") {
                         isShowingEditSheet = true
                     }
+                    .disabled(isDeleting)
+                    Menu {
+                        Button("Delete Trip", systemImage: "trash", role: .destructive) {
+                            isShowingDeleteConfirmation = true
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                    }
+                    .accessibilityLabel("More trip actions")
                     .disabled(isDeleting)
                 }
             }
@@ -516,7 +502,8 @@ enum TripDetailFetchRequestFactory {
         let request = Souvenir.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(key: "updatedAt", ascending: false),
-            NSSortDescriptor(key: "createdAt", ascending: false)
+            NSSortDescriptor(key: "createdAt", ascending: false),
+            NSSortDescriptor(key: "id", ascending: true)
         ]
         request.relationshipKeyPathsForPrefetching = ["photos", "trip"]
         request.predicate = NSCompoundPredicate(
@@ -554,247 +541,226 @@ enum TripDetailFetchRequestFactory {
     }
 }
 
-private struct TripSummaryCard: View {
-    let trip: Trip
+private struct TripHeader: View {
+    @ObservedObject var trip: Trip
+    let cover: Souvenir?
     let souvenirCount: Int
+    let mappedCount: Int
     let onViewOnMap: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var title: String { TripPresentationLogic.displayTitle(from: trip.title) }
 
     var body: some View {
-        SurfaceCard {
-            Text(TripPresentationLogic.displayTitle(from: trip.title))
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(AppTheme.textPrimary)
-
-            VStack(alignment: .leading, spacing: AppSpacing.small) {
-                if let dateRangeSummary = TripPresentationLogic.dateRangeSummary(
-                    startDate: trip.startDate,
-                    endDate: trip.endDate
-                ) {
-                    TripMetadataLabel(
-                        systemImage: "calendar",
-                        text: dateRangeSummary
-                    )
+        VStack(alignment: .leading, spacing: 18) {
+            if let cover, let photo = cover.galleryPhoto {
+                let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 14))
+                                                        : AnyLayout(HStackLayout(spacing: 18))
+                layout {
+                    GalleryTheme.surface
+                        .aspectRatio(typeSize.isAccessibilitySize ? 1.6 : 0.95, contentMode: .fit)
+                        .overlay { GalleryPhoto(photo: photo, featured: true) }
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .accessibilityLabel("Trip cover, \(cover.tripDisplayTitle)")
+                    heading.frame(maxWidth: .infinity, alignment: .leading)
                 }
-
-                if let destinationSummary = TripPresentationLogic.destinationSummary(from: trip.destinationSummary) {
-                    TripMetadataLabel(
-                        systemImage: "mappin.and.ellipse",
-                        text: destinationSummary
-                    )
+            } else {
+                HStack(spacing: 14) {
+                    Image(systemName: "suitcase")
+                        .font(.title2).foregroundStyle(GalleryTheme.secondary)
+                        .frame(width: 58, height: 58)
+                        .background(GalleryTheme.surface, in: RoundedRectangle(cornerRadius: 12))
+                        .accessibilityHidden(true)
+                    heading
                 }
-
-                TripMetadataLabel(
-                    systemImage: "shippingbox.fill",
-                    text: TripPresentationLogic.souvenirCountText(souvenirCount)
-                )
             }
 
             Button(action: onViewOnMap) {
-                Label("View on Map", systemImage: "map")
-                    .frame(maxWidth: .infinity)
+                HStack {
+                    Label("View on Map", systemImage: "map").font(.subheadline.weight(.semibold))
+                    Spacer()
+                    if souvenirCount > 0 {
+                        Text("\(mappedCount) of \(souvenirCount) mapped")
+                            .font(.footnote).foregroundStyle(GalleryTheme.secondary)
+                    }
+                    Image(systemName: "chevron.right").font(.caption.weight(.semibold))
+                }
+                .foregroundStyle(GalleryTheme.accent)
+                .padding(.horizontal, 14).frame(minHeight: 46)
+                .background(GalleryTheme.surface, in: RoundedRectangle(cornerRadius: 10))
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.bordered)
-            .accessibilityLabel("View \(TripPresentationLogic.displayTitle(from: trip.title)) on Map")
+            .buttonStyle(.plain)
+            .accessibilityLabel("View \(title) on Map")
+            .accessibilityValue(souvenirCount > 0 ? "\(mappedCount) of \(souvenirCount) souvenirs mapped" : "No souvenirs")
         }
-        .accessibilityElement(children: .contain)
+    }
+
+    private var heading: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title).font(.system(.largeTitle, design: .serif, weight: .medium))
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            if let destination = TripPresentationLogic.destinationSummary(from: trip.destinationSummary) {
+                Text(destination).font(.subheadline)
+            }
+            if let dates = TripPresentationLogic.dateRangeSummary(startDate: trip.startDate, endDate: trip.endDate) {
+                Text(dates).font(.footnote).foregroundStyle(GalleryTheme.secondary)
+            }
+        }
     }
 }
 
-private struct TripSouvenirsCard: View {
+private struct TripSouvenirList: View {
     let souvenirs: [Souvenir]
-    let onOpenRoute: (AppRoute) -> Void
+    let onOpen: (UUID) -> Void
 
     var body: some View {
-        SurfaceCard {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Souvenirs")
-                    .font(.headline)
-                    .foregroundStyle(AppTheme.textPrimary)
-
+                Text("Souvenirs").font(.system(.title2, design: .serif, weight: .medium))
+                    .accessibilityAddTraits(.isHeader)
                 Spacer()
-
-                Text(TripPresentationLogic.souvenirCountText(souvenirs.count))
-                    .font(.footnote)
-                    .foregroundStyle(AppTheme.textSecondary)
+                Text(souvenirs.count.formatted()).font(.subheadline.monospacedDigit())
+                    .foregroundStyle(GalleryTheme.secondary)
+                    .accessibilityLabel(TripPresentationLogic.souvenirCountText(souvenirs.count))
             }
-
+            .padding(.bottom, 8)
+            Divider()
             if souvenirs.isEmpty {
-                Text("No active souvenirs are linked to this trip yet.")
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.textSecondary)
-            } else {
-                VStack(spacing: AppSpacing.medium) {
-                    ForEach(Array(souvenirs.enumerated()), id: \.element.objectID) { index, souvenir in
-                        if let souvenirID = souvenir.id {
-                            Button {
-                                onOpenRoute(.souvenir(souvenirID))
-                            } label: {
-                                TripSouvenirRow(souvenir: souvenir)
-                            }
-                            .buttonStyle(.plain)
-                        } else {
-                            TripSouvenirRow(souvenir: souvenir)
-                        }
-
-                        if index < souvenirs.count - 1 {
-                            Divider()
-                        }
-                    }
+                Text("Souvenirs you add to this trip will appear here.")
+                    .font(.body).foregroundStyle(GalleryTheme.secondary)
+                    .padding(.vertical, 20)
+            }
+            ForEach(souvenirs, id: \.objectID) { souvenir in
+                Button {
+                    if let id = souvenir.id { onOpen(id) }
+                } label: {
+                    TripSouvenirRow(souvenir: souvenir)
                 }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("trip.souvenir")
+                .disabled(souvenir.id == nil)
+                Divider()
             }
         }
     }
 }
 
 private struct TripSouvenirRow: View {
-    let souvenir: Souvenir
+    @ObservedObject var souvenir: Souvenir
 
     var body: some View {
-        HStack(alignment: .top, spacing: AppSpacing.medium) {
-            TripSouvenirThumbnail(
-                data: souvenir.tripThumbnailData,
-                placeholderSystemImage: "shippingbox.fill"
-            )
-
-            VStack(alignment: .leading, spacing: AppSpacing.small) {
-                Text(souvenir.tripDisplayTitle)
-                    .foregroundStyle(AppTheme.textPrimary)
-
-                if let placeSummary = souvenir.tripPlaceSummary {
-                    TripMetadataLabel(
-                        systemImage: "mappin.and.ellipse",
-                        text: placeSummary
-                    )
+        HStack(spacing: 14) {
+            GalleryTheme.surface
+                .frame(width: 62, height: 62)
+                .overlay {
+                    if let photo = souvenir.galleryPhoto {
+                        GalleryPhoto(photo: photo, featured: false)
+                    } else {
+                        Image(systemName: "photo").foregroundStyle(GalleryTheme.secondary)
+                    }
                 }
-
-                if let acquiredSummary = souvenir.tripAcquiredSummary {
-                    TripMetadataLabel(
-                        systemImage: "calendar",
-                        text: acquiredSummary
-                    )
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(souvenir.tripDisplayTitle).font(.headline)
+                if let place = PlacePresentationLogic.displayTitle(name: souvenir.gotItInName,
+                        city: souvenir.gotItInCity, country: souvenir.gotItInCountryCode) {
+                    Text(place).font(.subheadline).foregroundStyle(GalleryTheme.secondary)
+                }
+                if let date = souvenir.acquiredDate {
+                    Text(date.formatted(date: .abbreviated, time: .omitted))
+                        .font(.footnote).foregroundStyle(GalleryTheme.secondary)
                 }
             }
-
-            Spacer(minLength: AppSpacing.small)
-
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(AppTheme.textMuted)
-                .padding(.top, AppSpacing.xSmall)
+            Spacer()
+            Image(systemName: "chevron.right").font(.caption.weight(.semibold))
+                .foregroundStyle(GalleryTheme.secondary).accessibilityHidden(true)
         }
+        .padding(.vertical, 10)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 }
 
-private struct TripSouvenirThumbnail: View {
-    let data: Data?
-    let placeholderSystemImage: String
-
-    var body: some View {
-        Group {
-            if let data,
-               let image = UIImage(data: data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Image(systemName: placeholderSystemImage)
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(AppTheme.placeholderSurface)
-            }
-        }
-        .frame(width: 72, height: 72)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-    }
-}
-
-private struct TripCoverPreview: View {
-    let photoData: Data
-
-    var body: some View {
-        Group {
-            if let image = UIImage(data: photoData) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 260)
-                    .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            } else {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(AppTheme.placeholderSurface)
-                    .frame(height: 220)
-                    .overlay {
-                        Image(systemName: "photo")
-                            .font(.title2.weight(.semibold))
-                            .foregroundStyle(AppTheme.textSecondary)
-                    }
-            }
-        }
-    }
-}
-
-private struct TripMetadataLabel: View {
-    let systemImage: String
-    let text: String
-
-    var body: some View {
-        Label(text, systemImage: systemImage)
-            .font(.subheadline)
-            .foregroundStyle(AppTheme.textSecondary)
-            .labelStyle(.titleAndIcon)
-    }
-}
-
 private extension Souvenir {
-    var tripDisplayTitle: String {
-        TripPresentationLogic.normalizedText(title) ?? "Untitled souvenir"
+    var tripDisplayTitle: String { TripPresentationLogic.normalizedText(title) ?? "Untitled souvenir" }
+}
+
+struct TripSouvenirBrowser: View {
+    let library: ActiveLibraryContext
+    let dependencies: AppDependencies
+    let onOpenRoute: (AppRoute) -> Void
+    @FetchRequest private var souvenirs: FetchedResults<Souvenir>
+    @State private var selectedID: UUID
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    init(tripID: UUID, souvenirID: UUID, library: ActiveLibraryContext, dependencies: AppDependencies,
+         onOpenRoute: @escaping (AppRoute) -> Void) {
+        self.library = library
+        self.dependencies = dependencies
+        self.onOpenRoute = onOpenRoute
+        _selectedID = State(initialValue: souvenirID)
+        _souvenirs = FetchRequest(fetchRequest: TripDetailFetchRequestFactory.souvenirs(tripID: tripID,
+            activeLibraryContext: library, persistenceController: dependencies.persistenceController))
     }
 
-    var tripPlaceSummary: String? {
-        PlacePresentationLogic.displayTitle(
-            name: gotItInName,
-            city: gotItInCity,
-            country: gotItInCountryCode
-        )
-    }
-
-    var tripAcquiredSummary: String? {
-        if let acquiredDate {
-            return "Got it \(acquiredDate.formatted(date: .abbreviated, time: .omitted))"
-        }
-
-        if let updatedAt {
-            return "Updated \(updatedAt.formatted(date: .abbreviated, time: .omitted))"
-        }
-
-        return nil
-    }
-
-    var tripThumbnailData: Data? {
-        sortedTripPhotos.first(where: { $0.thumbnailData != nil })?.thumbnailData
-            ?? sortedTripPhotos.first(where: { $0.displayImageData != nil })?.displayImageData
-    }
-
-    var tripHeroImageData: Data? {
-        sortedTripPhotos.first(where: { $0.displayImageData != nil })?.displayImageData
-            ?? sortedTripPhotos.first(where: { $0.thumbnailData != nil })?.thumbnailData
-    }
-
-    private var sortedTripPhotos: [PhotoAsset] {
-        ((photos as? Set<PhotoAsset>) ?? [])
-            .sorted { lhs, rhs in
-                if lhs.isPrimary != rhs.isPrimary {
-                    return lhs.isPrimary && !rhs.isPrimary
+    var body: some View {
+        let ids = souvenirs.compactMap(\.id)
+        if let index = ids.firstIndex(of: selectedID) {
+            SouvenirDetailScreen(souvenirID: selectedID, activeLibraryContext: library,
+                                 dependencies: dependencies, onOpenRoute: onOpenRoute)
+                .id(selectedID)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if ids.count > 1 {
+                        VStack(spacing: 0) {
+                            Divider()
+                            let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 0))
+                                                                     : AnyLayout(HStackLayout(spacing: 8))
+                            layout {
+                                Button { move(-1, from: index, in: ids) } label: {
+                                    Label("Previous", systemImage: "arrow.left")
+                                        .frame(minHeight: 44)
+                                }
+                                .accessibilityLabel("Previous souvenir")
+                                .disabled(index == 0)
+                                Text("Souvenir \(index + 1) of \(ids.count)")
+                                    .font(.subheadline.monospacedDigit())
+                                    .foregroundStyle(GalleryTheme.ink)
+                                    .frame(maxWidth: .infinity)
+                                Button { move(1, from: index, in: ids) } label: {
+                                    HStack { Text("Next"); Image(systemName: "arrow.right") }
+                                        .frame(minHeight: 44)
+                                }
+                                .accessibilityLabel("Next souvenir")
+                                .disabled(index == ids.count - 1)
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            .buttonStyle(.borderless)
+                            .controlSize(.large)
+                            .frame(minHeight: 52)
+                            .padding(.horizontal, 18)
+                            .contentShape(Rectangle())
+                            .simultaneousGesture(DragGesture(minimumDistance: 35).onEnded { drag in
+                                let delta = drag.translation
+                                guard abs(delta.width) > abs(delta.height) else { return }
+                                move(delta.width < 0 ? 1 : -1, from: index, in: ids)
+                            })
+                        }
+                        .tint(GalleryTheme.accent)
+                        .background(GalleryTheme.canvas)
+                    }
                 }
+        } else {
+            ContentUnavailableView("Souvenir no longer in this trip", systemImage: "suitcase")
+                .navigationTitle("Trip souvenir")
+        }
+    }
 
-                if lhs.sortIndex != rhs.sortIndex {
-                    return lhs.sortIndex < rhs.sortIndex
-                }
-
-                return (lhs.createdAt ?? .distantFuture) < (rhs.createdAt ?? .distantFuture)
-            }
+    private func move(_ step: Int, from index: Int, in ids: [UUID]) {
+        let destination = index + step
+        guard ids.indices.contains(destination) else { return }
+        selectedID = ids[destination]
     }
 }

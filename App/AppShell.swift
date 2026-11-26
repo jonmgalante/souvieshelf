@@ -132,18 +132,24 @@ struct AppShell: View {
                     tripID: tripID,
                     activeLibraryContext: activeLibraryContext,
                     dependencies: environment.dependencies,
-                    onOpenRoute: { nextRoute in
-                        store.open(nextRoute)
-                    },
-                    onViewOnMap: {
-                        store.showMap(
-                            filterContext: .trip(
-                                tripID,
-                                storeScope: activeLibraryContext.storeScope
-                            )
-                        )
-                    }
+                    onOpenRoute: store.open,
+                    onViewOnMap: { store.open(.tripMap(tripID)) }
                 )
+            } else {
+                RouteUnavailableScreen(route: route)
+            }
+        case let .tripSouvenir(tripID, souvenirID):
+            if let library = store.activeLibraryContext {
+                TripSouvenirBrowser(tripID: tripID, souvenirID: souvenirID, library: library,
+                                    dependencies: environment.dependencies, onOpenRoute: store.open)
+            } else {
+                RouteUnavailableScreen(route: route)
+            }
+        case .tripMap(let tripID):
+            if let library = store.activeLibraryContext {
+                MapScreen(filterContext: .trip(tripID, storeScope: library.storeScope),
+                          activeLibraryContext: library, mapRepository: environment.dependencies.mapRepository,
+                          onOpenRoute: store.open)
             } else {
                 RouteUnavailableScreen(route: route)
             }

@@ -56,12 +56,13 @@ struct SouvenirDetailScreen: View {
                                 .foregroundStyle(GalleryTheme.accent)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        SouvenirPhotoPager(photos: souvenir.detailSortedPhotos)
+                        SouvenirPhotoPager(photos: souvenir.orderedPhotos)
 
-                        SurfaceCard {
+                        VStack(alignment: .leading, spacing: AppSpacing.medium) {
                             Text(souvenir.detailScreenTitle)
-                                .font(.title2.weight(.semibold))
-                                .foregroundStyle(AppTheme.textPrimary)
+                                .font(.system(.title, design: .serif, weight: .medium))
+                                .foregroundStyle(GalleryTheme.ink)
+                                .accessibilityAddTraits(.isHeader)
 
                             VStack(alignment: .leading, spacing: AppSpacing.medium) {
                                 if let tripRow = souvenir.detailTripRow {
@@ -70,14 +71,14 @@ struct SouvenirDetailScreen: View {
                                             onOpenRoute(.trip(tripID))
                                         } label: {
                                             DetailMetadataRow(
-                                                label: "Trip",
+                                                label: "View trip",
                                                 title: tripRow.title,
                                                 subtitle: tripRow.subtitle,
                                                 showsChevron: true
                                             )
                                         }
                                         .buttonStyle(.plain)
-                                        .accessibilityHint("Opens the trip.")
+                                        .accessibilityLabel("View trip, \(tripRow.title)")
                                     } else {
                                         DetailMetadataRow(
                                             label: "Trip",
@@ -86,6 +87,15 @@ struct SouvenirDetailScreen: View {
                                             showsChevron: false
                                         )
                                     }
+                                }
+
+                                if let story = souvenir.detailStory {
+                                    Text(story)
+                                        .font(.body)
+                                        .lineSpacing(3)
+                                        .foregroundStyle(GalleryTheme.ink)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .accessibilityLabel("Story, \(story)")
                                 }
 
                                 if let gotItInPlace = souvenir.detailGotItInPlace {
@@ -114,18 +124,6 @@ struct SouvenirDetailScreen: View {
                                         showsChevron: false
                                     )
                                 }
-                            }
-                        }
-
-                        if let story = souvenir.detailStory {
-                            SurfaceCard {
-                                Text("Story")
-                                    .font(.headline)
-                                    .foregroundStyle(AppTheme.textPrimary)
-
-                                Text(story)
-                                    .font(.body)
-                                    .foregroundStyle(AppTheme.textPrimary)
                             }
                         }
 
@@ -158,6 +156,8 @@ struct SouvenirDetailScreen: View {
                 }
             }
         }
+        .background { GalleryTheme.canvas.ignoresSafeArea() }
+        .tint(GalleryTheme.accent)
         .navigationTitle(souvenir?.detailScreenTitle ?? "Souvenir")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -631,7 +631,7 @@ struct SouvenirEditSnapshot: Equatable, Sendable {
         self.selectedTrip = souvenir.detailTripSelection
         self.gotItInPlace = souvenir.detailGotItInPlace
         self.fromPlace = souvenir.detailFromPlace
-        self.photos = souvenir.detailSortedPhotos.compactMap(EditableSouvenirPhoto.init)
+        self.photos = souvenir.orderedPhotos.compactMap(EditableSouvenirPhoto.init)
 
         guard !photos.isEmpty else {
             return nil
@@ -786,15 +786,15 @@ private struct DetailMetadataRow: View {
             VStack(alignment: .leading, spacing: AppSpacing.xSmall) {
                 Text(label)
                     .font(.caption)
-                    .foregroundStyle(AppTheme.textSecondary)
+                    .foregroundStyle(GalleryTheme.secondary)
 
                 Text(title)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(showsChevron ? GalleryTheme.accent : GalleryTheme.ink)
 
                 if let subtitle {
                     Text(subtitle)
                         .font(.footnote)
-                        .foregroundStyle(AppTheme.textSecondary)
+                        .foregroundStyle(GalleryTheme.secondary)
                 }
             }
 
@@ -803,7 +803,7 @@ private struct DetailMetadataRow: View {
             if showsChevron {
                 Image(systemName: "chevron.right")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(AppTheme.textMuted)
+                    .foregroundStyle(GalleryTheme.accent)
             }
         }
         .contentShape(Rectangle())
@@ -831,6 +831,7 @@ private struct EditFormValueRow: View {
 
 private struct SouvenirPhotoPager: View {
     let photos: [PhotoAsset]
+    @State private var selectedID: NSManagedObjectID?
 
     var body: some View {
         if photos.isEmpty {
@@ -839,42 +840,62 @@ private struct SouvenirPhotoPager: View {
                 title: "Photo unavailable",
                 message: "This souvenir doesn't have a renderable photo right now."
             )
-        } else if photos.count == 1, let photo = photos.first {
-            DetailPhotoPage(photoData: photo.displayImageData)
-        } else {
-            TabView {
-                ForEach(photos, id: \.objectID) { photo in
-                    DetailPhotoPage(photoData: photo.displayImageData)
+        } else if let first = photos.first {
+            if photos.count == 1 {
+                DetailPhotoPage(photo: first)
+            } else {
+                let index = photos.firstIndex { $0.objectID == selectedID } ?? 0
+                let selection = Binding(get: { photos[index].objectID }, set: { selectedID = $0 })
+                VStack(spacing: 0) {
+                    TabView(selection: selection) {
+                        ForEach(photos, id: \.objectID) { photo in
+                            DetailPhotoPage(photo: photo)
+                                .tag(photo.objectID)
+                        }
+                    }
+                    .frame(height: 290)
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    HStack(spacing: 8) {
+                        Button { selectedID = photos[index - 1].objectID } label: {
+                            Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                        }
+                        .accessibilityLabel("Previous photo").disabled(index == 0)
+                        Text("Photo \(index + 1) of \(photos.count)")
+                            .font(.footnote.monospacedDigit()).foregroundStyle(GalleryTheme.secondary)
+                        Button { selectedID = photos[index + 1].objectID } label: {
+                            Image(systemName: "chevron.right").frame(width: 44, height: 44)
+                        }
+                        .accessibilityLabel("Next photo").disabled(index == photos.count - 1)
+                    }
+                    .buttonStyle(.borderless)
+                    .tint(GalleryTheme.accent)
                 }
             }
-            .frame(height: 320)
-            .tabViewStyle(.page(indexDisplayMode: .automatic))
         }
     }
 }
 
 private struct DetailPhotoPage: View {
-    let photoData: Data?
+    @ObservedObject var photo: PhotoAsset
 
     var body: some View {
         Group {
-            if let photoData,
-               let image = UIImage(data: photoData) {
+            if let image = photo.displayImageData.flatMap({ UIImage(data: $0) }) ?? photo.thumbnailData.flatMap({ UIImage(data: $0) }) {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
                     .frame(maxWidth: .infinity, minHeight: 260, maxHeight: 320)
                     .padding(AppSpacing.medium)
-                    .background(AppTheme.placeholderSurface)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .background(GalleryTheme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             } else {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(AppTheme.placeholderSurface)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(GalleryTheme.surface)
                     .frame(height: 260)
                     .overlay {
                         Image(systemName: "photo")
                             .font(.title2.weight(.semibold))
-                            .foregroundStyle(AppTheme.textSecondary)
+                            .foregroundStyle(GalleryTheme.secondary)
                     }
             }
         }
@@ -983,21 +1004,6 @@ private extension Souvenir {
             latitude: fromLatitude,
             longitude: fromLongitude
         )
-    }
-
-    var detailSortedPhotos: [PhotoAsset] {
-        ((photos as? Set<PhotoAsset>) ?? [])
-            .sorted { lhs, rhs in
-                if lhs.isPrimary != rhs.isPrimary {
-                    return lhs.isPrimary && !rhs.isPrimary
-                }
-
-                if lhs.sortIndex != rhs.sortIndex {
-                    return lhs.sortIndex < rhs.sortIndex
-                }
-
-                return (lhs.createdAt ?? .distantFuture) < (rhs.createdAt ?? .distantFuture)
-            }
     }
 
     private static func normalizedDisplayValue(_ value: String?) -> String? {

@@ -38,6 +38,8 @@ private struct LibraryHomeContent: View {
     @FetchRequest private var souvenirs: FetchedResults<Souvenir>
     @FetchRequest private var trips: FetchedResults<Trip>
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var today = Date.now
     @State private var segment: LibrarySegment = .items
     @State private var filter: LibraryItemFilter = .none
     @State private var searchText = ""
@@ -93,6 +95,12 @@ private struct LibraryHomeContent: View {
             .padding(.bottom, 32)
         }
         .scrollDismissesKeyboard(.interactively)
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { today = .now }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            today = .now
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSPersistentCloudKitContainer.eventChangedNotification, object: persistence.container)) { note in
             guard needsImportCheck,
                   let event = note.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey] as? NSPersistentCloudKitContainer.Event,
@@ -222,12 +230,13 @@ private struct LibraryHomeContent: View {
 
     @ViewBuilder private var shelf: some View {
         let matches = souvenirs.filter { souvenir in
-            filter.matches(souvenir) && (query.map { souvenir.matchesLibrarySearch(query: $0) } ?? true)
+            filter.matches(souvenir, on: today) && (query.map { souvenir.matchesLibrarySearch(query: $0) } ?? true)
         }
-        let featured = filter == .none && query == nil ? matches.first : nil
-        let remaining = featured == nil ? matches[...] : matches.dropFirst()
+        let featured = filter == .none && query == nil ? GalleryDailyFeature.pick(from: matches, on: today) : nil
+        let remaining = matches.filter { $0.objectID != featured?.objectID }
         if let featured {
-            souvenirButton(featured, featured: true).padding(.top, 20)
+            souvenirButton(featured, featured: true, anniversary: GalleryDailyFeature.isAnniversary(featured.acquiredDate, on: today))
+                .padding(.top, 20)
         }
         if !remaining.isEmpty {
             HStack(alignment: .firstTextBaseline) {
@@ -258,11 +267,11 @@ private struct LibraryHomeContent: View {
         }
     }
 
-    private func souvenirButton(_ souvenir: Souvenir, featured: Bool) -> some View {
+    private func souvenirButton(_ souvenir: Souvenir, featured: Bool, anniversary: Bool = false) -> some View {
         Button {
             if let id = souvenir.id { onOpen(.souvenir(id)) }
         } label: {
-            GallerySouvenirView(souvenir: souvenir, featured: featured)
+            GallerySouvenirView(souvenir: souvenir, featured: featured, anniversary: anniversary)
         }
         .buttonStyle(.plain)
         .disabled(souvenir.id == nil)
@@ -330,17 +339,38 @@ private extension LibrarySegment {
 private struct GallerySouvenirView: View {
     @ObservedObject var souvenir: Souvenir
     let featured: Bool
+    let anniversary: Bool
 
     var body: some View {
         let location = souvenir.galleryLocation ?? souvenir.visibleTripTitle
-        let story = souvenir.story.flatMap { $0.galleryStoryExcerpt }
-        GalleryObject(title: souvenir.displayTitle, location: location, story: story, featured: featured) {
+        let story = souvenir.story?.galleryStoryExcerpt ?? (location != souvenir.visibleTripTitle ? souvenir.visibleTripTitle : nil)
+        GalleryObject(title: souvenir.displayTitle, location: location, story: story, featured: featured, anniversary: anniversary) {
             if let photo = souvenir.galleryPhoto {
                 GalleryPhoto(photo: photo, featured: featured)
             } else {
                 GalleryPlaceholder(symbol: "photo")
             }
         }
+    }
+}
+
+enum GalleryDailyFeature {
+    static func isAnniversary(_ acquired: Date?, on day: Date, calendar: Calendar = .autoupdatingCurrent) -> Bool {
+        guard let acquired, calendar.compare(acquired, to: day, toGranularity: .year) == .orderedAscending else { return false }
+        return calendar.dateComponents([.month, .day], from: acquired) == calendar.dateComponents([.month, .day], from: day)
+    }
+
+    static func pick(from souvenirs: [Souvenir], on day: Date, calendar: Calendar = .autoupdatingCurrent) -> Souvenir? {
+        let active = souvenirs.filter { $0.id != nil && $0.deletedAt == nil }
+        let anniversaries = active.filter { isAnniversary($0.acquiredDate, on: day, calendar: calendar) }
+        let candidates = anniversaries.isEmpty ? active : anniversaries
+        let withContext = candidates.filter { $0.story.normalizedDisplayValue != nil || $0.visibleTripTitle != nil }
+        let pool = (withContext.isEmpty ? candidates : withContext).sorted {
+            ($0.id?.uuidString ?? "") < ($1.id?.uuidString ?? "")
+        }
+        guard !pool.isEmpty else { return nil }
+        let dayNumber = calendar.ordinality(of: .day, in: .era, for: day) ?? 0
+        return pool[dayNumber % pool.count]
     }
 }
 
@@ -814,16 +844,16 @@ private enum LibraryItemFilter: CaseIterable {
         switch self {
         case .none: "All souvenirs"
         case .needsInfo: "Needs Info"
-        case .onThisDay: "On This Day"
+        case .onThisDay: "Anniversaries"
         }
     }
 
-    func matches(_ souvenir: Souvenir) -> Bool {
+    func matches(_ souvenir: Souvenir, on day: Date) -> Bool {
         switch self {
         case .none:
             return true
         case .onThisDay:
-            return souvenir.isOnThisDayMatch
+            return GalleryDailyFeature.isAnniversary(souvenir.acquiredDate, on: day)
         case .needsInfo:
             return souvenir.needsAttention
         }
@@ -1479,7 +1509,8 @@ private enum LibraryFetchRequestFactory {
         let request = Souvenir.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(key: "updatedAt", ascending: false),
-            NSSortDescriptor(key: "createdAt", ascending: false)
+            NSSortDescriptor(key: "createdAt", ascending: false),
+            NSSortDescriptor(key: "id", ascending: true)
         ]
         request.predicate = NSPredicate(
             format: "library.id == %@ AND deletedAt == NIL",
@@ -1594,17 +1625,6 @@ private extension Souvenir {
         title.normalizedDisplayValue == nil || visibleTripTitle == nil || gotItInSummary == nil
     }
 
-    var isOnThisDayMatch: Bool {
-        guard let acquiredDate else {
-            return false
-        }
-
-        let calendar = Calendar.autoupdatingCurrent
-        let acquiredComponents = calendar.dateComponents([.month, .day], from: acquiredDate)
-        let currentComponents = calendar.dateComponents([.month, .day], from: .now)
-        return acquiredComponents.month == currentComponents.month && acquiredComponents.day == currentComponents.day
-    }
-
     var librarySearchableText: String {
         [
             displayTitle,
@@ -1627,17 +1647,6 @@ private extension Souvenir {
         let country = gotItInCountryCode.normalizedDisplayValue
         let name = country.flatMap { $0.count == 2 ? Locale.current.localizedString(forRegionCode: $0.uppercased()) : $0 }
         return PlacePresentationLogic.displayTitle(name: gotItInName, city: gotItInCity, country: name ?? country)
-    }
-
-    var galleryPhoto: PhotoAsset? {
-        sortedPhotoAssets.first { $0.thumbnailData != nil || $0.displayImageData != nil }
-    }
-
-    var primaryThumbnailData: Data? {
-        let photos = sortedPhotoAssets
-        if let thumb = photos.lazy.compactMap(\.thumbnailData).first { return thumb }
-        guard let display = photos.lazy.compactMap(\.displayImageData).first else { return nil }
-        return GalleryPhoto.downsample(display, maxPixels: 320)?.jpegData(compressionQuality: 0.8)
     }
 
     var placeCandidate: PlaceCandidate? {
@@ -1669,21 +1678,6 @@ private extension Souvenir {
             city: gotItInCity,
             country: gotItInCountryCode
         )
-    }
-
-    private var sortedPhotoAssets: [PhotoAsset] {
-        let photoAssets = (photos as? Set<PhotoAsset>) ?? []
-        return photoAssets.sorted { lhs, rhs in
-            if lhs.isPrimary != rhs.isPrimary {
-                return lhs.isPrimary && !rhs.isPrimary
-            }
-
-            if lhs.sortIndex != rhs.sortIndex {
-                return lhs.sortIndex < rhs.sortIndex
-            }
-
-            return (lhs.createdAt ?? .distantFuture) < (rhs.createdAt ?? .distantFuture)
-        }
     }
 
     private func resolvedCoordinate(

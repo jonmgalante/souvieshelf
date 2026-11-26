@@ -88,6 +88,7 @@ struct GalleryObject<Photo: View>: View {
     let location: String?
     let story: String?
     let featured: Bool
+    let anniversary: Bool
     @ViewBuilder var photo: () -> Photo
     @Environment(\.dynamicTypeSize) private var typeSize
 
@@ -108,7 +109,7 @@ struct GalleryObject<Photo: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel([title, location, featured ? story : nil].compactMap { $0 }.joined(separator: ". "))
+        .accessibilityLabel([anniversary ? "On This Day" : nil, title, location, featured ? story : nil].compactMap { $0 }.joined(separator: ". "))
     }
 
     private func framedPhoto(ratio: CGFloat) -> some View {
@@ -121,6 +122,11 @@ struct GalleryObject<Photo: View>: View {
 
     private var featureCaption: some View {
         VStack(alignment: .leading, spacing: 9) {
+            if anniversary {
+                Label("On This Day", systemImage: "calendar")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(GalleryTheme.accent)
+            }
             if let location {
                 Text(location)
                     .font(.caption.weight(.semibold))
@@ -238,5 +244,25 @@ struct GalleryBrowseRow: View {
         .overlay(alignment: .bottom) { Rectangle().fill(GalleryTheme.rule).frame(height: 0.5) }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
+    }
+}
+
+extension Souvenir {
+    var galleryPhoto: PhotoAsset? {
+        orderedPhotos.first { photo in
+            Self.hasImage(photo.thumbnailData) || Self.hasImage(photo.displayImageData)
+        }
+    }
+
+    var primaryThumbnailData: Data? {
+        guard let photo = galleryPhoto else { return nil }
+        if let thumb = photo.thumbnailData, Self.hasImage(thumb) { return thumb }
+        guard let display = photo.displayImageData else { return nil }
+        return GalleryPhoto.downsample(display, maxPixels: 320)?.jpegData(compressionQuality: 0.8)
+    }
+
+    private static func hasImage(_ data: Data?) -> Bool {
+        guard let data, let source = CGImageSourceCreateWithData(data as CFData, nil) else { return false }
+        return CGImageSourceGetCount(source) > 0
     }
 }

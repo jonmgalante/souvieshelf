@@ -111,6 +111,10 @@ final class AppStore: ObservableObject {
     }
 
     func open(_ route: AppRoute) {
+        if case .trip = route, let index = routePath.lastIndex(of: route) {
+            routePath.removeSubrange((index + 1)...)
+            return
+        }
         routePath.append(route)
     }
 

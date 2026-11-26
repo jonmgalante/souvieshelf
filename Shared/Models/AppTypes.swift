@@ -683,7 +683,7 @@ enum MapPresentationLogic {
         )
     }
 
-    private static func coordinate(
+    static func coordinate(
         latitude: Double,
         longitude: Double
     ) -> (latitude: Double, longitude: Double)? {
@@ -706,5 +706,32 @@ enum MapPresentationLogic {
             .filter { !$0.isEmpty }
             .joined(separator: " ")
         return collapsed?.isEmpty == false ? collapsed : nil
+    }
+}
+
+extension Souvenir {
+    var orderedPhotos: [PhotoAsset] {
+        let photoAssets = (photos as? Set<PhotoAsset>) ?? []
+        return photoAssets.sorted { lhs, rhs in
+            if lhs.isPrimary != rhs.isPrimary {
+                return lhs.isPrimary && !rhs.isPrimary
+            }
+
+            if lhs.sortIndex != rhs.sortIndex {
+                return lhs.sortIndex < rhs.sortIndex
+            }
+
+            let leftDate = lhs.createdAt ?? .distantFuture
+            let rightDate = rhs.createdAt ?? .distantFuture
+            if leftDate != rightDate {
+                return leftDate < rightDate
+            }
+            let leftID = lhs.id?.uuidString ?? ""
+            let rightID = rhs.id?.uuidString ?? ""
+            if leftID != rightID {
+                return leftID < rightID
+            }
+            return lhs.objectID.uriRepresentation().absoluteString < rhs.objectID.uriRepresentation().absoluteString
+        }
     }
 }

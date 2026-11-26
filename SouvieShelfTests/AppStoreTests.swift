@@ -3,6 +3,19 @@ import XCTest
 
 @MainActor
 final class AppStoreTests: XCTestCase {
+    func testTripLinksReturnToExistingTripAcrossMapAndSouvenir() {
+        let store = AppStore(dependencies: .preview())
+        let trip = UUID()
+        let entry = AppRoute.souvenir(UUID())
+        store.open(entry)
+        store.open(.trip(trip))
+        store.open(.tripMap(trip))
+        store.open(.tripSouvenir(tripID: trip, souvenirID: UUID()))
+        store.open(.trip(trip))
+        XCTAssertEqual(store.routePath, [entry, .trip(trip)])
+        XCTAssertEqual(store.selectedTab, .library)
+    }
+
     func testLaunchTransitionsToPairingWhenNoLibraryExists() async {
         let store = AppStore(dependencies: .preview(scenario: .pairing))
 
