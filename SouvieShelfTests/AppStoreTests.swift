@@ -21,6 +21,22 @@ final class AppStoreTests: XCTestCase {
         XCTAssertNil(store.activeLibraryContext)
     }
 
+    func testAcceptedShareWaitsForItsRootEvenWhenAPrivateShelfExists() async throws {
+        let dependencies = AppDependencies.preview(scenario: .ready)
+        let store = AppStore(dependencies: dependencies)
+        await store.launchIfNeeded()
+        await store.waitForAcceptedLibrary()
+        XCTAssertEqual(store.phase, .waitingForSharedLibrary)
+        XCTAssertNil(store.activeLibraryContext)
+
+        await store.retryLaunch()
+        XCTAssertEqual(store.phase, .waitingForSharedLibrary)
+        try dependencies.persistenceController.seedLibrary(title: "Our Library", scope: .sharedLibrary)
+        await store.retryLaunch()
+        XCTAssertEqual(store.phase, .ready)
+        XCTAssertEqual(store.activeLibraryContext?.storeScope, .sharedLibrary)
+    }
+
     func testCreateOurLibraryShowsICloudRequiredWhenICloudIsUnavailable() async {
         let store = AppStore(dependencies: .preview(scenario: .iCloudUnavailable))
 

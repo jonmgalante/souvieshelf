@@ -164,6 +164,27 @@ final class PersistenceController: @unchecked Sendable {
         }
     }
 
+    /// A participant can receive the Library record before its souvenirs. Even across a
+    /// relaunch, require a completed import for this store before presenting an empty shelf.
+    func hasFinishedSharedImport(since acceptance: Date?) async -> Bool {
+        guard let store = try? persistentStore(for: .sharedLibrary) else { return false }
+        do {
+            return try await performBackgroundTask { context in
+                let request = NSPersistentCloudKitContainerEventRequest.fetchEvents(after: nil as NSPersistentCloudKitContainer.Event?)
+                request.affectedStores = [store]
+                let result = try context.execute(request) as? NSPersistentCloudKitContainerEventResult
+                let events = result?.result as? [NSPersistentCloudKitContainer.Event] ?? []
+                let latest = events.lazy.filter { $0.storeIdentifier == store.identifier && $0.type == .import }
+                    .max { $0.startDate < $1.startDate }
+                guard let latest, latest.succeeded, let end = latest.endDate else { return false }
+                return acceptance.map { end >= $0 } ?? true
+            }
+        } catch {
+            logger.error("Could not read the shared store’s import status: \(error.localizedDescription, privacy: .public)")
+            return false
+        }
+    }
+
     func seedLibrary(
         title: String,
         scope: StoreScope,

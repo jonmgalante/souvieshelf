@@ -1,7 +1,27 @@
+import CoreData
 import XCTest
 @testable import SouvieShelf
 
 final class LibraryScreenTests: XCTestCase {
+    @MainActor
+    func testLibraryDetailRequestsSupportLiveObservation() async throws {
+        let dependencies = AppDependencies.preview(scenario: .ready)
+        let persistence = dependencies.persistenceController
+        let launch = await dependencies.bootstrapRepository.resolveLaunchContext()
+        guard case .ready(let library) = launch else { return XCTFail("Expected a seeded library") }
+
+        func observe<T: NSManagedObject>(_ request: NSFetchRequest<T>) throws {
+            // An empty descriptor list raises an Objective-C exception at navigation time.
+            XCTAssertFalse(request.sortDescriptors?.isEmpty ?? true)
+            guard request.sortDescriptors?.isEmpty == false else { return }
+            let controller = NSFetchedResultsController(fetchRequest: request, managedObjectContext: persistence.viewContext,
+                                                        sectionNameKeyPath: nil, cacheName: nil)
+            try controller.performFetch()
+        }
+        try observe(SouvenirDetailFetchRequestFactory.make(souvenirID: UUID(), activeLibraryContext: library, persistenceController: persistence))
+        try observe(TripDetailFetchRequestFactory.trip(tripID: UUID(), activeLibraryContext: library, persistenceController: persistence))
+    }
+
     func testGoalMockupChromeMatchesReference() {
         let goal = LibraryMockupReferences.goal
 
@@ -157,6 +177,26 @@ final class LibraryScreenTests: XCTestCase {
                 )
             ]
         )
+    }
+
+    func testGalleryStoryExcerptHandlesMissingTextAndLongStories() throws {
+        XCTAssertNil("  \n ".galleryStoryExcerpt)
+        XCTAssertEqual("  A cup\n from Ravello. ".galleryStoryExcerpt, "A cup from Ravello.")
+        let longStory = String(repeating: "We remembered the little shop. ", count: 12)
+        let excerpt = try XCTUnwrap(longStory.galleryStoryExcerpt)
+        XCTAssertLessThanOrEqual(excerpt.count, 141)
+        XCTAssertTrue(excerpt.hasSuffix("…"))
+        XCTAssertTrue(longStory.hasPrefix(excerpt.dropLast() + " "))
+    }
+
+    func testSharedImportDoesNotPresentAnEmptyShelfUntilComplete() {
+        XCTAssertEqual(LibraryContentState.resolve(souvenirCount: 0, tripCount: 0, awaitingImport: true), .loading)
+        XCTAssertEqual(LibraryContentState.resolve(souvenirCount: 0, tripCount: 0, awaitingImport: false), .empty)
+    }
+
+    func testCachedContentIsBrowsableDuringSharedImport() {
+        XCTAssertEqual(LibraryContentState.resolve(souvenirCount: 1, tripCount: 0, awaitingImport: true), .populated)
+        XCTAssertEqual(LibraryContentState.resolve(souvenirCount: 0, tripCount: 1, awaitingImport: true), .populated)
     }
 
     func testContentStateIsEmptyWhenSouvenirsAndTripsAreBothMissing() {

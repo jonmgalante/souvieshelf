@@ -4,7 +4,6 @@ import SwiftUI
 import UIKit
 
 enum AppPermission: String, CaseIterable, Codable, Sendable {
-    case photoLibrary
     case camera
     case locationWhenInUse
 }
@@ -18,6 +17,15 @@ enum PermissionStatus: String, CaseIterable, Codable, Sendable {
 struct ImportedPhotoLocation: Equatable, Codable, Sendable {
     var latitude: Double
     var longitude: Double
+
+    var coordinatePlace: PlaceDraft {
+        PlaceDraft(title: coordinateLabel, latitude: latitude, longitude: longitude)
+    }
+
+    var coordinateLabel: String {
+        String(format: "%.3f° %@, %.3f° %@", abs(latitude), latitude < 0 ? "S" : "N",
+               abs(longitude), longitude < 0 ? "W" : "E")
+    }
 }
 
 struct ImportedPhoto: Equatable, Codable, Sendable {

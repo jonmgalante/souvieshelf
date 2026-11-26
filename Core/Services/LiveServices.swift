@@ -3,7 +3,6 @@ import CoreLocation
 import Foundation
 import ImageIO
 import MapKit
-import Photos
 import PhotosUI
 import SwiftUI
 import UIKit
@@ -58,8 +57,6 @@ final class LivePermissionCoordinator: NSObject, PermissionCoordinating, @precon
 
     func status(for permission: AppPermission) async -> PermissionStatus {
         switch permission {
-        case .photoLibrary:
-            return Self.photoLibraryPermissionStatus(from: PHPhotoLibrary.authorizationStatus(for: .readWrite))
         case .camera:
             return Self.cameraPermissionStatus(from: AVCaptureDevice.authorizationStatus(for: .video))
         case .locationWhenInUse:
@@ -70,19 +67,6 @@ final class LivePermissionCoordinator: NSObject, PermissionCoordinating, @precon
 
     func requestAccess(for permission: AppPermission) async -> PermissionStatus {
         switch permission {
-        case .photoLibrary:
-            let existingStatus = await status(for: permission)
-            guard existingStatus == .notDetermined else {
-                return existingStatus
-            }
-
-            return await withCheckedContinuation { continuation in
-                PHPhotoLibrary.requestAuthorization(for: .readWrite) { authorizationStatus in
-                    continuation.resume(
-                        returning: Self.photoLibraryPermissionStatus(from: authorizationStatus)
-                    )
-                }
-            }
         case .camera:
             let existingStatus = await status(for: permission)
             guard existingStatus == .notDetermined else {
@@ -133,21 +117,6 @@ final class LivePermissionCoordinator: NSObject, PermissionCoordinating, @precon
         continuation.resume(returning: status)
     }
 
-    nonisolated private static func photoLibraryPermissionStatus(
-        from authorizationStatus: PHAuthorizationStatus
-    ) -> PermissionStatus {
-        switch authorizationStatus {
-        case .authorized, .limited:
-            .authorized
-        case .denied, .restricted:
-            .denied
-        case .notDetermined:
-            .notDetermined
-        @unknown default:
-            .denied
-        }
-    }
-
     nonisolated private static func cameraPermissionStatus(
         from authorizationStatus: AVAuthorizationStatus
     ) -> PermissionStatus {
@@ -189,10 +158,7 @@ final class LivePhotoImportService: PhotoImporting {
             throw PhotoImportError.unreadableImage
         }
 
-        let metadata = await photoLibraryMetadata(
-            localIdentifier: item.itemIdentifier,
-            imageData: imageData
-        )
+        let metadata = metadata(from: imageData)
         let normalizedImage = try normalizeImportedImage(from: imageData)
 
         return ImportedPhoto(
@@ -308,28 +274,6 @@ final class LivePhotoImportService: PhotoImporting {
         return UIGraphicsImageRenderer(size: size, format: format).image(actions: drawing)
     }
 
-    private func photoLibraryMetadata(
-        localIdentifier: String?,
-        imageData: Data
-    ) async -> ImportedPhotoMetadata {
-        if let localIdentifier,
-           let asset = PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil).firstObject {
-            return ImportedPhotoMetadata(
-                capturedAt: asset.creationDate,
-                location: asset.location.map {
-                    ImportedPhotoLocation(
-                        latitude: $0.coordinate.latitude,
-                        longitude: $0.coordinate.longitude
-                    )
-                }
-            )
-        }
-
-        // PhotosPicker does not guarantee that every imported transfer includes an addressable PHAsset.
-        // When the picker only gives us image bytes, fall back to whatever EXIF/GPS payload is embedded.
-        return metadata(from: imageData)
-    }
-
     private func cameraMetadata(from metadataDictionary: [String: Any]?) -> ImportedPhotoMetadata {
         metadata(from: metadataDictionary as [AnyHashable: Any]?)
     }
@@ -405,7 +349,7 @@ final class LiveLocationSuggestionService: NSObject, LocationSuggesting, @precon
             return placemarks.first.map(Self.placeDraft(from:))
         } catch {
             return PlaceDraft(
-                title: "Photo location",
+                title: ImportedPhotoLocation(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude).coordinateLabel,
                 locality: nil,
                 country: nil,
                 latitude: location.coordinate.latitude,
