@@ -3,6 +3,8 @@ import SwiftUI
 struct AppShell: View {
     @EnvironmentObject private var environment: AppEnvironment
     @ObservedObject var store: AppStore
+    @State private var pendingSavedID: UUID?
+    @State private var recentSave: UUID?
 
     var body: some View {
         NavigationStack(path: $store.routePath) {
@@ -34,17 +36,29 @@ struct AppShell: View {
         }
         .appScreenBackground()
         .appNavigationChrome()
-        .sheet(isPresented: $store.isShowingAddSheet) {
+        .sheet(isPresented: $store.isShowingAddSheet, onDismiss: openSavedSouvenir) {
             if let activeLibraryContext = store.activeLibraryContext {
                 AddSouvenirSheet(
                     activeLibraryContext: activeLibraryContext,
                     dependencies: environment.dependencies,
-                    onSaved: { store.dismissAddSheet() }
+                    onSaved: { id in
+                        pendingSavedID = id
+                        store.dismissAddSheet()
+                    }
                 )
             } else {
                 AddUnavailableSheet(onDismiss: { store.dismissAddSheet() })
             }
         }
+    }
+
+    private func openSavedSouvenir() {
+        guard let id = pendingSavedID else { return }
+        pendingSavedID = nil
+        recentSave = id
+        store.selectTab(.library)
+        store.open(.souvenir(id))
+        AccessibilityNotification.Announcement("Saved to Our Library").post()
     }
 
     private var selectedTabBinding: Binding<MainTab> {
@@ -101,12 +115,14 @@ struct AppShell: View {
             if let activeLibraryContext = store.activeLibraryContext {
                 SouvenirDetailScreen(
                     souvenirID: souvenirID,
+                    isNewlySaved: recentSave == souvenirID,
                     activeLibraryContext: activeLibraryContext,
                     dependencies: environment.dependencies,
                     onOpenRoute: { nextRoute in
                         store.open(nextRoute)
                     }
                 )
+                .onDisappear { if recentSave == souvenirID { recentSave = nil } }
             } else {
                 RouteUnavailableScreen(route: route)
             }

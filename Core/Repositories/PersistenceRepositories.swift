@@ -92,6 +92,8 @@ enum SharingRepositoryError: LocalizedError {
 
 final class PersistenceBackedAppBackend: @unchecked Sendable, BootstrapRepository, LibraryRepository, SharingRepository, SouvenirRepository, TripRepository, DeletedRepository, MapRepository {
     private let persistenceController: PersistenceController
+    @MainActor private var retryingCaptureShares = false
+    @MainActor private var retryCaptureSharesAgain = false
     private let iCloudStatusProvider: any ICloudStatusProviding
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "SouvieShelf",
@@ -331,6 +333,7 @@ final class PersistenceBackedAppBackend: @unchecked Sendable, BootstrapRepositor
             )
         }
 
+        Task { await retryPendingCaptureShares() }
         logger.info(
             "Prepared native CloudKit share presentation for library \(libraryID.uuidString, privacy: .public)."
         )
@@ -367,6 +370,10 @@ final class PersistenceBackedAppBackend: @unchecked Sendable, BootstrapRepositor
             return
         }
 
+        try await attachOwnerObjects(objectIDs, to: existingShare, libraryID: libraryID)
+    }
+
+    private func attachOwnerObjects(_ objectIDs: [NSManagedObjectID], to existingShare: CKShare, libraryID: UUID) async throws {
         logger.info(
             "Attaching \(objectIDs.count, privacy: .public) new owner-side object(s) to the existing library share for \(libraryID.uuidString, privacy: .public)."
         )
@@ -436,113 +443,143 @@ final class PersistenceBackedAppBackend: @unchecked Sendable, BootstrapRepositor
 
         let activeLibraryContext = input.libraryContext
         let now = Date()
-        let createdObjectIDs = try await withCheckedThrowingContinuation { continuation in
-            let context = makeBackgroundContext(named: "SouvieShelf.CreateSouvenirContext")
-            context.perform {
-                do {
-                    let store = try self.persistenceController.persistentStore(for: activeLibraryContext.storeScope)
-                    guard let souvenirEntity = NSEntityDescription.entity(
-                        forEntityName: "Souvenir",
-                        in: context
-                    ) else {
-                        throw SharingRepositoryError.missingEntity(name: "Souvenir")
-                    }
+        try await persistenceController.performBackgroundTask { context in
+            context.name = "SouvieShelf.CreateSouvenirContext"
+            let store = try self.persistenceController.persistentStore(for: activeLibraryContext.storeScope)
+            guard let souvenirEntity = NSEntityDescription.entity(
+                forEntityName: "Souvenir",
+                in: context
+            ) else {
+                throw SharingRepositoryError.missingEntity(name: "Souvenir")
+            }
 
-                    guard let library = try self.fetchLibrary(
+            guard let library = try self.fetchLibrary(
+                libraryID: activeLibraryContext.libraryID,
+                scope: activeLibraryContext.storeScope,
+                in: context
+            ) else {
+                throw SharingRepositoryError.missingLibrary(
+                    id: activeLibraryContext.libraryID,
+                    scope: activeLibraryContext.storeScope
+                )
+            }
+
+            let souvenir = Souvenir(entity: souvenirEntity, insertInto: context)
+            souvenir.id = input.id
+            souvenir.title = Self.normalizedOptionalString(input.title)
+            souvenir.story = Self.normalizedOptionalString(input.story)
+            souvenir.acquiredDate = input.acquiredOn
+            souvenir.createdAt = now
+            souvenir.updatedAt = now
+            souvenir.library = library
+            souvenir.needsCaptureShareAttachment = activeLibraryContext.storeScope == .privateLibrary
+
+            Self.apply(place: input.gotItInPlace, to: souvenir, kind: .gotItIn)
+            Self.apply(place: input.fromPlace, to: souvenir, kind: .from)
+
+            if let tripID = input.tripID {
+                guard let trip = try self.fetchTrip(
+                    tripID: tripID,
+                    libraryID: activeLibraryContext.libraryID,
+                    scope: activeLibraryContext.storeScope,
+                    in: context
+                ) else {
+                    throw SharingRepositoryError.missingTrip(
+                        id: tripID,
                         libraryID: activeLibraryContext.libraryID,
-                        scope: activeLibraryContext.storeScope,
-                        in: context
-                    ) else {
-                        throw SharingRepositoryError.missingLibrary(
-                            id: activeLibraryContext.libraryID,
-                            scope: activeLibraryContext.storeScope
-                        )
-                    }
-
-                    let souvenir = Souvenir(entity: souvenirEntity, insertInto: context)
-                    souvenir.id = input.id
-                    souvenir.title = Self.normalizedOptionalString(input.title)
-                    souvenir.story = Self.normalizedOptionalString(input.story)
-                    souvenir.acquiredDate = input.acquiredOn
-                    souvenir.createdAt = now
-                    souvenir.updatedAt = now
-                    souvenir.library = library
-
-                    Self.apply(place: input.gotItInPlace, to: souvenir, kind: .gotItIn)
-                    Self.apply(place: input.fromPlace, to: souvenir, kind: .from)
-
-                    if let tripID = input.tripID {
-                        guard let trip = try self.fetchTrip(
-                            tripID: tripID,
-                            libraryID: activeLibraryContext.libraryID,
-                            scope: activeLibraryContext.storeScope,
-                            in: context
-                        ) else {
-                            throw SharingRepositoryError.missingTrip(
-                                id: tripID,
-                                libraryID: activeLibraryContext.libraryID,
-                                scope: activeLibraryContext.storeScope
-                            )
-                        }
-
-                        souvenir.trip = trip
-                    }
-
-                    var createdObjects: [NSManagedObject] = [souvenir]
-                    createdObjects.reserveCapacity(input.photos.count + 1)
-
-                    guard let photoAssetEntity = NSEntityDescription.entity(
-                        forEntityName: "PhotoAsset",
-                        in: context
-                    ) else {
-                        throw SharingRepositoryError.missingEntity(name: "PhotoAsset")
-                    }
-
-                    for (index, photo) in input.photos.enumerated() {
-                        let asset = PhotoAsset(entity: photoAssetEntity, insertInto: context)
-                        asset.id = photo.id
-                        asset.createdAt = now
-                        asset.displayImageData = photo.displayImageData
-                        asset.thumbnailData = photo.thumbnailData
-                        asset.pixelWidth = photo.pixelWidth
-                        asset.pixelHeight = photo.pixelHeight
-                        asset.isPrimary = index == 0
-                        asset.sortIndex = Int16(index)
-                        asset.souvenir = souvenir
-                        context.assign(asset, to: store)
-                        createdObjects.append(asset)
-                    }
-
-                    library.updatedAt = now
-                    context.assign(souvenir, to: store)
-                    try context.obtainPermanentIDs(for: Array(context.insertedObjects))
-
-                    if context.hasChanges {
-                        try context.save()
-                    }
-
-                    let createdObjectIDs = createdObjects.map(\.objectID)
-                    if createdObjectIDs.contains(where: \.isTemporaryID) {
-                        throw SharingRepositoryError.shareAttachmentMissingObject(objectID: souvenir.objectID)
-                    }
-
-                    continuation.resume(returning: createdObjectIDs)
-                } catch {
-                    continuation.resume(throwing: error)
+                        scope: activeLibraryContext.storeScope
+                    )
                 }
+
+                souvenir.trip = trip
+            }
+
+            guard let photoAssetEntity = NSEntityDescription.entity(
+                forEntityName: "PhotoAsset",
+                in: context
+            ) else {
+                throw SharingRepositoryError.missingEntity(name: "PhotoAsset")
+            }
+
+            for (index, photo) in input.photos.enumerated() {
+                let asset = PhotoAsset(entity: photoAssetEntity, insertInto: context)
+                asset.populate(with: photo, createdAt: now)
+                asset.isPrimary = index == 0
+                asset.sortIndex = Int16(index)
+                asset.souvenir = souvenir
+                context.assign(asset, to: store)
+            }
+
+            library.updatedAt = now
+            context.assign(souvenir, to: store)
+
+            if context.hasChanges {
+                try context.save()
             }
         }
 
-        try await attachObjectsToLibraryShareIfNeeded(
-            objectIDs: createdObjectIDs,
-            libraryID: activeLibraryContext.libraryID,
-            scope: activeLibraryContext.storeScope
-        )
+        if activeLibraryContext.storeScope == .privateLibrary {
+            Task { await retryPendingCaptureShares() }
+        }
 
         logger.info(
             "Created souvenir \(input.id.uuidString, privacy: .public) in the \(activeLibraryContext.storeScope.logLabel, privacy: .public) library."
         )
         return input.id
+    }
+
+    // The flag commits with the photo. A failed or interrupted owner-side attachment
+    // remains eligible after relaunch, even if the original Add sheet is gone.
+    @MainActor
+    func retryPendingCaptureShares() async {
+        guard supportsCloudKitSharing else { return }
+        retryCaptureSharesAgain = true
+        guard !retryingCaptureShares else { return }
+        retryingCaptureShares = true
+        defer { retryingCaptureShares = false }
+
+        repeat {
+            retryCaptureSharesAgain = false
+            do {
+                // A missing cached share can be temporary. Keep the durable flag until
+                // these objects have been checked against the owner's actual share.
+                guard let library = try await fetchPreferredLibrarySnapshot(in: .privateLibrary),
+                      let share = try await fetchExistingLibraryShare(libraryID: library.libraryID, scope: .privateLibrary)
+                else { continue }
+                try await attachPendingCaptures(in: library.libraryID) { ids in
+                    try await self.attachOwnerObjects(ids, to: share, libraryID: library.libraryID)
+                }
+            } catch {
+                logger.error("Will retry attaching locally saved souvenirs: \(error.localizedDescription, privacy: .public)")
+            }
+        } while retryCaptureSharesAgain
+    }
+
+    func attachPendingCaptures(in libraryID: UUID, using attach: ([NSManagedObjectID]) async throws -> Void) async throws {
+        let pending = try await persistenceController.performBackgroundTask { context in
+            let request = Souvenir.fetchRequest()
+            request.affectedStores = [try self.persistenceController.persistentStore(for: .privateLibrary)]
+            request.predicate = NSPredicate(format: "needsCaptureShareAttachment == YES AND library.id == %@", libraryID as CVarArg)
+            return try context.fetch(request).map { souvenir in
+                let photos = souvenir.photos as? Set<PhotoAsset> ?? []
+                return (souvenir.objectID, photos.map(\.objectID))
+            }
+        }
+
+        var failure: Error?
+        for (souvenirID, photoIDs) in pending {
+            do {
+                try await attach([souvenirID] + photoIDs)
+                try await persistenceController.performBackgroundTask { context in
+                    guard let souvenir = try context.existingObject(with: souvenirID) as? Souvenir else { return }
+                    souvenir.needsCaptureShareAttachment = false
+                    try context.save()
+                }
+            } catch {
+                failure = error
+            }
+        }
+        if let failure { throw failure }
     }
 
     func canEditSouvenir(
@@ -710,12 +747,7 @@ final class PersistenceBackedAppBackend: @unchecked Sendable, BootstrapRepositor
                 }
 
                 let asset = PhotoAsset(entity: photoAssetEntity, insertInto: context)
-                asset.id = addedPhoto.id
-                asset.createdAt = now
-                asset.displayImageData = addedPhoto.displayImageData
-                asset.thumbnailData = addedPhoto.thumbnailData
-                asset.pixelWidth = addedPhoto.pixelWidth
-                asset.pixelHeight = addedPhoto.pixelHeight
+                asset.populate(with: addedPhoto, createdAt: now)
                 asset.souvenir = souvenir
                 context.assign(asset, to: store)
                 newPhotoAssets.append(asset)
@@ -1756,5 +1788,19 @@ private extension StoreScope {
         case .sharedLibrary:
             "shared"
         }
+    }
+}
+
+private extension PhotoAsset {
+    func populate(with photo: ImportedPhoto, createdAt now: Date) {
+        id = photo.id
+        createdAt = now
+        displayImageData = photo.displayImageData
+        thumbnailData = photo.thumbnailData
+        pixelWidth = photo.pixelWidth
+        pixelHeight = photo.pixelHeight
+        capturedAt = photo.capturedAt
+        captureLatitude = photo.suggestedLocation.map { NSNumber(value: $0.latitude) }
+        captureLongitude = photo.suggestedLocation.map { NSNumber(value: $0.longitude) }
     }
 }

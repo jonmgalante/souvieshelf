@@ -1,5 +1,6 @@
 import CloudKit
 import CoreData
+import Network
 import OSLog
 import SwiftUI
 import UIKit
@@ -72,6 +73,7 @@ final class SouvieShelfSceneDelegate: NSObject, UIWindowSceneDelegate {
 struct SouvieShelfApp: App {
     @UIApplicationDelegateAdaptor(SouvieShelfAppDelegate.self) private var appDelegate
     @StateObject private var environment = AppEnvironment.live()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -82,6 +84,12 @@ struct SouvieShelfApp: App {
                     environment.dependencies.persistenceController.viewContext
                 )
                 .tint(AppTheme.accentPrimary)
+                .task(id: scenePhase) {
+                    guard scenePhase == .active else { return }
+                    for await path in NWPathMonitor() where path.status == .satisfied {
+                        await environment.dependencies.sharingRepository.retryPendingCaptureShares()
+                    }
+                }
         }
     }
 }

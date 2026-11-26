@@ -10,17 +10,19 @@ struct AddSouvenirSheet: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var activePlaceField: AddSouvenirPlaceField?
     @State private var isShowingTripPicker = false
+    @State private var showsDetails = false
+    @State private var showsPhotoSuggestions = false
 
     private let persistenceController: PersistenceController
     private let tripRepository: any TripRepository
     private let permissionCoordinator: any PermissionCoordinating
     private let locationSuggester: any LocationSuggesting
-    private let onSaved: () -> Void
+    private let onSaved: (UUID) -> Void
 
     init(
         activeLibraryContext: ActiveLibraryContext,
         dependencies: AppDependencies,
-        onSaved: @escaping () -> Void
+        onSaved: @escaping (UUID) -> Void
     ) {
         self.persistenceController = dependencies.persistenceController
         self.tripRepository = dependencies.tripRepository
@@ -54,6 +56,7 @@ struct AddSouvenirSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .disabled(viewModel.isSaving)
                 }
 
                 if viewModel.importedPhoto != nil {
@@ -74,8 +77,8 @@ struct AddSouvenirSheet: View {
                 }
             }
         }
-        .appScreenBackground()
-        .appNavigationChrome()
+        .tint(GalleryTheme.accent)
+        .interactiveDismissDisabled(viewModel.isSaving)
         .photosPicker(
             isPresented: $viewModel.isShowingPhotoLibraryPicker,
             selection: $selectedPhotoItem,
@@ -87,10 +90,8 @@ struct AddSouvenirSheet: View {
                 return
             }
 
-            Task {
-                await viewModel.importPhotoLibraryItem(newValue)
-                selectedPhotoItem = nil
-            }
+            selectedPhotoItem = nil
+            Task { await viewModel.importPhotoLibraryItem(newValue) }
         }
         .sheet(isPresented: $viewModel.isShowingCameraPicker) {
             CameraCaptureSheet(
@@ -157,169 +158,160 @@ struct AddSouvenirSheet: View {
     private var sourceChoiceContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.large) {
-                StateMessageView(
-                    icon: "shippingbox.circle.fill",
-                    title: "Start With One Photo",
-                    message: "Pick a photo from your library or take one now. SouvieShelf will suggest the date and place when that metadata is available."
-                )
+                VStack(alignment: .leading, spacing: AppSpacing.small) {
+                    Text("Start with a photo")
+                        .font(.largeTitle.weight(.semibold))
+                    Text("You can add its story later.")
+                        .foregroundStyle(GalleryTheme.secondary)
+                }
 
-                SurfaceCard {
+                VStack(spacing: AppSpacing.medium) {
                     Button {
-                        Task {
-                            await viewModel.beginPhotoLibraryImport()
-                        }
+                        viewModel.beginPhotoLibraryImport()
                     } label: {
-                        Label("Choose from Library", systemImage: "photo.on.rectangle.angled")
+                        Label("Choose from Photos", systemImage: "photo.on.rectangle")
+                            .foregroundStyle(GalleryTheme.onAccent)
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(viewModel.isBusy)
 
                     Button {
-                        Task {
-                            await viewModel.beginCameraCapture()
-                        }
+                        Task { await viewModel.beginCameraCapture() }
                     } label: {
                         Label("Take Photo", systemImage: "camera")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
-                    .disabled(viewModel.isBusy || !viewModel.isCameraAvailable)
+                    .accessibilityHint(viewModel.isCameraAvailable ? "Opens the camera." : "Opens Photos because the camera is unavailable.")
+                }
+                .controlSize(.large)
+                .disabled(viewModel.isBusy)
 
-                    if !viewModel.isCameraAvailable {
-                        Text("Camera capture is available on iPhone hardware, not the simulator.")
-                            .font(.footnote)
-                            .foregroundStyle(AppTheme.textSecondary)
-                    }
+                if !viewModel.isCameraAvailable {
+                    Text("The camera is unavailable. Choose a photo from this device.")
+                        .font(.footnote)
+                        .foregroundStyle(GalleryTheme.secondary)
+                }
 
-                    if viewModel.isImporting {
-                        HStack(spacing: AppSpacing.small) {
-                            ProgressView()
-                            Text("Preparing your photo...")
-                                .font(.subheadline)
-                                .foregroundStyle(AppTheme.textSecondary)
-                        }
-                    }
+                if viewModel.isImporting {
+                    ProgressView("Preparing photo…")
                 }
             }
             .padding(AppSpacing.large)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .appScreenBackground()
+        .foregroundStyle(GalleryTheme.ink)
+        .appScreenBackground(GalleryTheme.canvas)
     }
 
     private var editingContent: some View {
         Form {
-            if let importedPhoto = viewModel.importedPhoto {
+            if let photo = viewModel.importedPhoto {
                 Section {
-                    ImportedPhotoPreview(imageData: importedPhoto.displayImageData)
+                    ImportedPhotoPreview(imageData: photo.displayImageData)
                         .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
+                } footer: {
+                    Button("Choose another photo") { viewModel.beginPhotoLibraryImport() }
+                        .font(.subheadline)
+                        .padding(.top, AppSpacing.xSmall)
                 }
-                .appGroupedRowChrome(Color.clear)
-            }
+                .listRowBackground(Color.clear)
 
-            Section {
-                Button {
-                    isShowingTripPicker = true
-                } label: {
-                    FormValueRow(
-                        label: "Trip",
-                        value: viewModel.selectedTrip?.title,
-                        placeholder: "Optional"
-                    )
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    activePlaceField = .gotItIn
-                } label: {
-                    FormValueRow(
-                        label: "Got it in",
-                        value: viewModel.gotItInPlace?.displayTitle,
-                        placeholder: viewModel.isResolvingSuggestedPlace ? "Looking up place..." : "Optional"
-                    )
-                }
-                .buttonStyle(.plain)
-                .disabled(viewModel.isSaving)
-
-                Button {
-                    activePlaceField = .from
-                } label: {
-                    FormValueRow(
-                        label: "From",
-                        value: viewModel.fromPlace?.displayTitle,
-                        placeholder: "Optional"
-                    )
-                }
-                .buttonStyle(.plain)
-                .disabled(viewModel.isSaving)
-            }
-            .appGroupedRowChrome()
-
-            Section {
-                if viewModel.acquiredDate == nil {
-                    Button("Add Date") {
-                        viewModel.acquiredDate = viewModel.defaultAcquiredDate
+                if photo.capturedAt != nil || photo.suggestedLocation != nil {
+                    Section {
+                        PhotoAcquisitionSuggestions(
+                            date: photo.capturedAt, place: viewModel.suggestedPlace, isExpanded: $showsPhotoSuggestions,
+                            useDate: { date in
+                                viewModel.acquiredDate = date
+                                showsDetails = true
+                            },
+                            usePlace: { place in
+                                viewModel.gotItInPlace = place
+                                showsDetails = true
+                            }
+                        )
+                    } footer: {
+                        Text("Save now to leave the acquisition details open.")
                     }
-                    .disabled(viewModel.isSaving)
-                } else {
-                    DatePicker(
-                        "Date",
-                        selection: acquiredDateBinding,
-                        displayedComponents: .date
-                    )
-                    .disabled(viewModel.isSaving)
-
-                    Button("Clear Date", role: .destructive) {
-                        viewModel.acquiredDate = nil
-                    }
-                    .disabled(viewModel.isSaving)
+                    .listRowBackground(GalleryTheme.surface)
                 }
             }
-            .appGroupedRowChrome()
 
             Section {
-                TextField("Title", text: $viewModel.title)
-                    .disabled(viewModel.isSaving)
-
-                TextField("Story", text: $viewModel.story, axis: .vertical)
-                    .lineLimit(4, reservesSpace: true)
-                    .disabled(viewModel.isSaving)
+                DisclosureGroup("Add souvenir details", isExpanded: $showsDetails) {
+                    TextField("Title", text: $viewModel.title)
+                    TextField("Story", text: $viewModel.story, axis: .vertical)
+                        .lineLimit(1...5)
+                    Button {
+                        isShowingTripPicker = true
+                    } label: {
+                        FormValueRow(label: "Trip", value: viewModel.selectedTrip?.title, placeholder: "Optional")
+                    }
+                    Button {
+                        activePlaceField = .gotItIn
+                    } label: {
+                        FormValueRow(label: "Got it in", value: viewModel.gotItInPlace?.displayTitle, placeholder: "Optional")
+                    }
+                    Button {
+                        activePlaceField = .from
+                    } label: {
+                        FormValueRow(label: "From", value: viewModel.fromPlace?.displayTitle, placeholder: "Optional")
+                    }
+                    if viewModel.acquiredDate != nil {
+                        DatePicker("Acquired on", selection: acquiredDateBinding, displayedComponents: .date)
+                        Button("Clear acquisition date") { viewModel.acquiredDate = nil }
+                    } else {
+                        Button("Set acquisition date") { viewModel.acquiredDate = .now }
+                    }
+                }
             }
-            .appGroupedRowChrome()
+            .listRowBackground(GalleryTheme.surface)
         }
-        .appGroupedScreenChrome()
+        .scrollContentBackground(.hidden)
+        .appScreenBackground(GalleryTheme.canvas)
+        .disabled(viewModel.isBusy)
+        .task(id: showsPhotoSuggestions ? viewModel.importedPhoto?.id : nil) {
+            if showsPhotoSuggestions { await viewModel.resolveSuggestedPlace() }
+        }
         .overlay {
-            if viewModel.isImporting {
-                ProgressView("Importing photo...")
-                    .padding(AppSpacing.large)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(AppTheme.surfaceOverlay)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(AppTheme.borderSubtle, lineWidth: 1)
-                    )
-            }
+            if viewModel.isImporting { ProgressView("Preparing photo…").padding().background(.regularMaterial, in: Capsule()) }
         }
     }
 
     private var acquiredDateBinding: Binding<Date> {
         Binding(
-            get: { viewModel.acquiredDate ?? viewModel.defaultAcquiredDate },
+            get: { viewModel.acquiredDate ?? .now },
             set: { viewModel.acquiredDate = $0 }
         )
     }
 
     private func saveAndDismissIfNeeded() async {
-        let didSave = await viewModel.save()
-        guard didSave else {
-            return
+        if let souvenirID = await viewModel.save() {
+            onSaved(souvenirID)
         }
+    }
+}
 
-        onSaved()
-        dismiss()
+struct PhotoAcquisitionSuggestions: View {
+    let date: Date?
+    let place: PlaceDraft?
+    @Binding var isExpanded: Bool
+    let useDate: (Date) -> Void
+    let usePlace: (PlaceDraft) -> Void
+
+    var body: some View {
+        DisclosureGroup("Use details from this photo", isExpanded: $isExpanded) {
+            if let date {
+                Button { useDate(date) } label: {
+                    Label("Use \(date.formatted(date: .abbreviated, time: .omitted)) as acquisition date", systemImage: "calendar")
+                }
+            }
+            if let place {
+                Button { usePlace(place) } label: {
+                    Label("Use \(place.displayTitle) for Got it in", systemImage: "mappin")
+                }
+            }
+        }
     }
 }
 
@@ -730,6 +722,8 @@ struct PlaceSearchSheet: View {
                     .foregroundStyle(AppTheme.textSecondary)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
 }
 
@@ -737,7 +731,7 @@ struct PlaceSearchSheet: View {
 final class AddSouvenirViewModel: ObservableObject {
     let activeLibraryContext: ActiveLibraryContext
 
-    @Published var importedPhoto: ImportedPhoto?
+    @Published private(set) var importedPhoto: ImportedPhoto?
     @Published var selectedTrip: TripSelection?
     @Published var gotItInPlace: PlaceDraft?
     @Published var fromPlace: PlaceDraft?
@@ -746,7 +740,10 @@ final class AddSouvenirViewModel: ObservableObject {
     @Published var story = ""
     @Published var isImporting = false
     @Published var isSaving = false
-    @Published var isResolvingSuggestedPlace = false
+    @Published private(set) var suggestedPlace: PlaceDraft?
+    @Published private(set) var savedID: UUID?
+    private var importID = UUID()
+    private let draftID = UUID()
     @Published var isShowingPhotoLibraryPicker = false
     @Published var isShowingCameraPicker = false
     @Published var errorMessage: String?
@@ -771,7 +768,11 @@ final class AddSouvenirViewModel: ObservableObject {
     }
 
     var isCameraAvailable: Bool {
+        #if targetEnvironment(simulator)
+        false
+        #else
         UIImagePickerController.isSourceTypeAvailable(.camera)
+        #endif
     }
 
     var isBusy: Bool {
@@ -779,21 +780,11 @@ final class AddSouvenirViewModel: ObservableObject {
     }
 
     var canSave: Bool {
-        AddSouvenirFormLogic.canSave(hasImportedPhoto: importedPhoto != nil, isBusy: isBusy)
+        savedID == nil && AddSouvenirFormLogic.canSave(hasImportedPhoto: importedPhoto != nil, isBusy: isBusy)
     }
 
-    var defaultAcquiredDate: Date {
-        acquiredDate ?? importedPhoto?.capturedAt ?? .now
-    }
-
-    func beginPhotoLibraryImport() async {
+    func beginPhotoLibraryImport() {
         errorMessage = nil
-        let permissionStatus = await permissionCoordinator.requestAccess(for: .photoLibrary)
-        guard permissionStatus == .authorized else {
-            errorMessage = "Allow Photo Library access in Settings to import a souvenir photo."
-            return
-        }
-
         isShowingPhotoLibraryPicker = true
     }
 
@@ -801,7 +792,7 @@ final class AddSouvenirViewModel: ObservableObject {
         errorMessage = nil
 
         guard isCameraAvailable else {
-            errorMessage = "Camera capture is only available on an iPhone with a camera."
+            beginPhotoLibraryImport()
             return
         }
 
@@ -826,21 +817,18 @@ final class AddSouvenirViewModel: ObservableObject {
         }
     }
 
-    func save() async -> Bool {
-        guard let importedPhoto else {
-            errorMessage = "Import one photo before saving."
-            return false
-        }
+    func save() async -> UUID? {
+        guard canSave, let importedPhoto else { return nil }
 
         isSaving = true
         errorMessage = nil
         defer { isSaving = false }
 
         do {
-            try await souvenirRepository.createSouvenir(
+            let id = try await souvenirRepository.createSouvenir(
                 CreateSouvenirInput(
                     libraryContext: activeLibraryContext,
-                    id: UUID(),
+                    id: draftID,
                     tripID: selectedTrip?.id,
                     title: title,
                     story: story,
@@ -850,38 +838,39 @@ final class AddSouvenirViewModel: ObservableObject {
                     photos: [importedPhoto]
                 )
             )
-            return true
+            savedID = id
+            return id
         } catch {
             errorMessage = error.localizedDescription
-            return false
+            return nil
         }
     }
 
-    private func importPhoto(
-        _ operation: () async throws -> ImportedPhoto
-    ) async {
+    private func importPhoto(_ operation: () async throws -> ImportedPhoto) async {
+        guard !isSaving, savedID == nil else { return }
+        let selection = UUID()
+        importID = selection
         isImporting = true
         errorMessage = nil
-        defer { isImporting = false }
+        defer {
+            if importID == selection { isImporting = false }
+        }
 
         do {
             let photo = try await operation()
+            guard selection == importID else { return }
             importedPhoto = photo
-            acquiredDate = photo.capturedAt
-            await resolveSuggestedPlaceIfNeeded(for: photo)
+            suggestedPlace = photo.suggestedLocation?.coordinatePlace
         } catch {
-            errorMessage = error.localizedDescription
+            if selection == importID { errorMessage = error.localizedDescription }
         }
     }
 
-    private func resolveSuggestedPlaceIfNeeded(for photo: ImportedPhoto) async {
-        guard let location = photo.suggestedLocation else {
-            return
-        }
-
-        isResolvingSuggestedPlace = true
-        defer { isResolvingSuggestedPlace = false }
-        gotItInPlace = await locationSuggester.suggestedPlace(for: location)
+    func resolveSuggestedPlace() async {
+        guard let photo = importedPhoto, let location = photo.suggestedLocation else { return }
+        let place = await locationSuggester.suggestedPlace(for: location)
+        guard !Task.isCancelled, photo.id == importedPhoto?.id, let place else { return }
+        suggestedPlace = place
     }
 }
 
@@ -1177,9 +1166,9 @@ private struct ImportedPhotoPreview: View {
                     .resizable()
                     .scaledToFit()
                     .frame(maxWidth: .infinity)
-                    .padding(AppSpacing.medium)
-                    .background(AppTheme.surfaceSecondary)
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .frame(maxHeight: 310)
+                    .background(GalleryTheme.surface)
+                    .accessibilityLabel("Selected souvenir photo")
             } else {
                 StateMessageView(
                     icon: "photo",

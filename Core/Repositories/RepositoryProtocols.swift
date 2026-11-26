@@ -53,6 +53,7 @@ final class LibraryShareControllerContext: Identifiable {
 }
 
 protocol SharingRepository: Sendable {
+    func retryPendingCaptureShares() async
     func fetchShareSummary(libraryID: UUID, scope: StoreScope) async -> ShareSummary?
     @MainActor
     func prepareShareController(

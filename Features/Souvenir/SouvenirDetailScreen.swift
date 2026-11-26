@@ -6,6 +6,7 @@ import UIKit
 struct SouvenirDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
 
+    private let isNewlySaved: Bool
     private let souvenirID: UUID
     private let activeLibraryContext: ActiveLibraryContext
     private let dependencies: AppDependencies
@@ -20,10 +21,12 @@ struct SouvenirDetailScreen: View {
 
     init(
         souvenirID: UUID,
+        isNewlySaved: Bool = false,
         activeLibraryContext: ActiveLibraryContext,
         dependencies: AppDependencies,
         onOpenRoute: @escaping (AppRoute) -> Void
     ) {
+        self.isNewlySaved = isNewlySaved
         self.souvenirID = souvenirID
         self.activeLibraryContext = activeLibraryContext
         self.dependencies = dependencies
@@ -47,6 +50,12 @@ struct SouvenirDetailScreen: View {
             if let souvenir {
                 ScrollView {
                     VStack(alignment: .leading, spacing: AppSpacing.large) {
+                        if isNewlySaved {
+                            Label("Saved to Our Library", systemImage: "checkmark.circle.fill")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(GalleryTheme.accent)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                         SouvenirPhotoPager(photos: souvenir.detailSortedPhotos)
 
                         SurfaceCard {
@@ -243,6 +252,7 @@ struct EditSouvenirSheet: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var activePlaceField: AddSouvenirPlaceField?
     @State private var isShowingTripPicker = false
+    @State private var showsPhotoSuggestions = false
 
     private let persistenceController: PersistenceController
     private let tripRepository: any TripRepository
@@ -263,7 +273,6 @@ struct EditSouvenirSheet: View {
                 snapshot: snapshot,
                 activeLibraryContext: activeLibraryContext,
                 souvenirRepository: dependencies.souvenirRepository,
-                permissionCoordinator: dependencies.permissionCoordinator,
                 photoImporter: dependencies.photoImporter
             )
         )
@@ -288,9 +297,7 @@ struct EditSouvenirSheet: View {
                     }
 
                     Button {
-                        Task {
-                            await viewModel.beginPhotoLibraryImport()
-                        }
+                        viewModel.isShowingPhotoLibraryPicker = true
                     } label: {
                         Label("Add Photo", systemImage: "plus")
                     }
@@ -309,6 +316,19 @@ struct EditSouvenirSheet: View {
                     }
                 }
                 .appGroupedRowChrome()
+
+                if let primary = viewModel.photos.first(where: \.isPrimary),
+                   primary.capturedAt != nil || primary.captureLocation != nil {
+                    Section {
+                        PhotoAcquisitionSuggestions(
+                            date: primary.capturedAt, place: primary.captureLocation?.coordinatePlace,
+                            isExpanded: $showsPhotoSuggestions,
+                            useDate: { viewModel.acquiredDate = $0 }, usePlace: { viewModel.gotItInPlace = $0 }
+                        )
+                    }
+                    .appGroupedRowChrome()
+                    .disabled(viewModel.isBusy)
+                }
 
                 Section("Details") {
                     TextField("Title", text: $viewModel.title)
@@ -505,20 +525,17 @@ final class EditSouvenirViewModel: ObservableObject {
 
     private let souvenirID: UUID
     private let souvenirRepository: any SouvenirRepository
-    private let permissionCoordinator: any PermissionCoordinating
     private let photoImporter: any PhotoImporting
 
     init(
         snapshot: SouvenirEditSnapshot,
         activeLibraryContext: ActiveLibraryContext,
         souvenirRepository: any SouvenirRepository,
-        permissionCoordinator: any PermissionCoordinating,
         photoImporter: any PhotoImporting
     ) {
         self.activeLibraryContext = activeLibraryContext
         self.souvenirID = snapshot.souvenirID
         self.souvenirRepository = souvenirRepository
-        self.permissionCoordinator = permissionCoordinator
         self.photoImporter = photoImporter
         self.title = snapshot.title
         self.story = snapshot.story
@@ -535,17 +552,6 @@ final class EditSouvenirViewModel: ObservableObject {
 
     var canSave: Bool {
         !photos.isEmpty && !isBusy
-    }
-
-    func beginPhotoLibraryImport() async {
-        errorMessage = nil
-        let permissionStatus = await permissionCoordinator.requestAccess(for: .photoLibrary)
-        guard permissionStatus == .authorized else {
-            errorMessage = "Allow Photo Library access in Settings to add souvenir photos."
-            return
-        }
-
-        isShowingPhotoLibraryPicker = true
     }
 
     func importPhotoLibraryItem(_ item: PhotosPickerItem) async {
@@ -644,6 +650,8 @@ struct EditableSouvenirPhoto: Identifiable, Equatable, Sendable {
     let thumbnailData: Data
     var isPrimary: Bool
     let source: Source
+    let capturedAt: Date?
+    let captureLocation: ImportedPhotoLocation?
 
     init?(photoAsset: PhotoAsset) {
         guard let id = photoAsset.id else {
@@ -654,6 +662,12 @@ struct EditableSouvenirPhoto: Identifiable, Equatable, Sendable {
         self.displayImageData = photoAsset.displayImageData ?? Data()
         self.thumbnailData = photoAsset.thumbnailData ?? Data()
         self.isPrimary = photoAsset.isPrimary
+        self.capturedAt = photoAsset.capturedAt
+        if let latitude = photoAsset.captureLatitude, let longitude = photoAsset.captureLongitude {
+            self.captureLocation = ImportedPhotoLocation(latitude: latitude.doubleValue, longitude: longitude.doubleValue)
+        } else {
+            self.captureLocation = nil
+        }
         self.source = .existing
     }
 
@@ -662,6 +676,8 @@ struct EditableSouvenirPhoto: Identifiable, Equatable, Sendable {
         self.displayImageData = importedPhoto.displayImageData
         self.thumbnailData = importedPhoto.thumbnailData
         self.isPrimary = isPrimary
+        self.capturedAt = importedPhoto.capturedAt
+        self.captureLocation = importedPhoto.suggestedLocation
         self.source = .imported(importedPhoto)
     }
 

@@ -35,6 +35,7 @@
 		000000000000000000000227 /* SettingsScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000130 /* SettingsScreenTests.swift */; };
 		000000000000000000000228 /* LibraryMockupSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000131 /* LibraryMockupSupport.swift */; };
 		000000000000000000000229 /* LibraryScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000132 /* LibraryScreenTests.swift */; };
+		000000000000000000000247 /* OnePhotoCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000147 /* OnePhotoCaptureTests.swift */; };
 		000000000000000000000230 /* LibraryMockupHomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000133 /* LibraryMockupHomeScreen.swift */; };
 		000000000000000000000231 /* LibraryHomeDesignBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000134 /* LibraryHomeDesignBundle.swift */; };
 		000000000000000000000232 /* GalleryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000135 /* GalleryViews.swift */; };
@@ -82,6 +83,7 @@
 		000000000000000000000130 /* SettingsScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreenTests.swift; sourceTree = "<group>"; };
 		000000000000000000000131 /* LibraryMockupSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMockupSupport.swift; sourceTree = "<group>"; };
 		000000000000000000000132 /* LibraryScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScreenTests.swift; sourceTree = "<group>"; };
+		000000000000000000000147 /* OnePhotoCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnePhotoCaptureTests.swift; sourceTree = "<group>"; };
 		000000000000000000000133 /* LibraryMockupHomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMockupHomeScreen.swift; sourceTree = "<group>"; };
 		000000000000000000000134 /* LibraryHomeDesignBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryHomeDesignBundle.swift; sourceTree = "<group>"; };
 		000000000000000000000135 /* GalleryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryViews.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 			children = (
 				000000000000000000000113 /* AppStoreTests.swift */,
 				000000000000000000000132 /* LibraryScreenTests.swift */,
+				000000000000000000000147 /* OnePhotoCaptureTests.swift */,
 				000000000000000000000118 /* PersistenceRepositoryTests.swift */,
 				000000000000000000000130 /* SettingsScreenTests.swift */,
 			);
@@ -440,6 +443,7 @@
 			files = (
 				000000000000000000000213 /* AppStoreTests.swift in Sources */,
 				000000000000000000000229 /* LibraryScreenTests.swift in Sources */,
+				000000000000000000000247 /* OnePhotoCaptureTests.swift in Sources */,
 				000000000000000000000219 /* PersistenceRepositoryTests.swift in Sources */,
 				000000000000000000000227 /* SettingsScreenTests.swift in Sources */,
 			);
@@ -509,7 +513,6 @@
 				INFOPLIST_KEY_CKSharingSupported = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "SouvieShelf uses the camera so you can add a new souvenir photo.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SouvieShelf uses your location to suggest where you got a souvenir.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SouvieShelf uses your photo library so you can import souvenir photos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -541,7 +544,6 @@
 				INFOPLIST_KEY_CKSharingSupported = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "SouvieShelf uses the camera so you can add a new souvenir photo.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SouvieShelf uses your location to suggest where you got a souvenir.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SouvieShelf uses your photo library so you can import souvenir photos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
