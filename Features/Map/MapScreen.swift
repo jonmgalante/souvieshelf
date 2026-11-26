@@ -136,7 +136,11 @@ struct MapScreen: View {
                     MapSelectionPreviewCard(
                         annotation: selectedAnnotation,
                         onOpen: {
-                            onOpenRoute(.souvenir(selectedAnnotation.souvenirID))
+                            if let tripID = filterContext.tripID {
+                                onOpenRoute(.tripSouvenir(tripID: tripID, souvenirID: selectedAnnotation.souvenirID))
+                            } else {
+                                onOpenRoute(.souvenir(selectedAnnotation.souvenirID))
+                            }
                         }
                     )
                     .id(selectedAnnotation.souvenirID)
@@ -188,22 +192,22 @@ private struct MapContextBadge: View {
         VStack(alignment: .leading, spacing: AppSpacing.xSmall) {
             Text(title)
                 .font(.headline)
-                .foregroundStyle(AppTheme.textPrimary)
+                .foregroundStyle(GalleryTheme.ink)
 
             Text(subtitle)
                 .font(.footnote)
-                .foregroundStyle(AppTheme.textSecondary)
+                .foregroundStyle(GalleryTheme.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, AppSpacing.medium)
         .padding(.vertical, AppSpacing.small)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(AppTheme.surfaceOverlay)
+                .fill(GalleryTheme.canvas)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(AppTheme.borderSubtle, lineWidth: 1)
+                .stroke(GalleryTheme.rule, lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
     }
@@ -225,44 +229,47 @@ private struct MapSelectionPreviewCard: View {
 
     var body: some View {
         Button(action: onOpen) {
-            SurfaceCard {
-                HStack(alignment: .top, spacing: AppSpacing.medium) {
-                    MapPreviewThumbnail(
-                        thumbnailData: annotation.thumbnailData
-                    )
+            HStack(alignment: .top, spacing: AppSpacing.medium) {
+                MapPreviewThumbnail(
+                    thumbnailData: annotation.thumbnailData
+                )
 
-                    VStack(alignment: .leading, spacing: AppSpacing.small) {
-                        Text(annotation.title)
-                            .font(.headline)
-                            .foregroundStyle(AppTheme.textPrimary)
-                            .multilineTextAlignment(.leading)
+                VStack(alignment: .leading, spacing: AppSpacing.small) {
+                    Text(annotation.title)
+                        .font(.headline)
+                        .foregroundStyle(GalleryTheme.ink)
+                        .multilineTextAlignment(.leading)
 
-                        if let tripTitle = annotation.tripTitle {
-                            Label(tripTitle, systemImage: "suitcase.rolling.fill")
-                                .font(.subheadline)
-                                .foregroundStyle(AppTheme.textSecondary)
-                        }
-
-                        if let placeSummary = annotation.placeSummary {
-                            Label(placeSummary, systemImage: "mappin.and.ellipse")
-                                .font(.subheadline)
-                                .foregroundStyle(AppTheme.textSecondary)
-                        }
+                    if let tripTitle = annotation.tripTitle {
+                        Label(tripTitle, systemImage: "suitcase.rolling.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(GalleryTheme.secondary)
                     }
 
-                    Spacer(minLength: AppSpacing.small)
-
-                    Image(systemName: "chevron.right")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(AppTheme.textMuted)
-                        .padding(.top, AppSpacing.xSmall)
+                    if let placeSummary = annotation.placeSummary {
+                        Label(placeSummary, systemImage: "mappin.and.ellipse")
+                            .font(.subheadline)
+                            .foregroundStyle(GalleryTheme.secondary)
+                    }
                 }
+
+                Spacer(minLength: AppSpacing.small)
+
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(GalleryTheme.accent)
+                    .padding(.top, AppSpacing.xSmall)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(AppSpacing.medium)
+            .background(GalleryTheme.canvas, in: RoundedRectangle(cornerRadius: 14))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Opens the souvenir.")
+        .accessibilityIdentifier("map.selectedSouvenir")
     }
 }
 
@@ -279,11 +286,11 @@ private struct MapPreviewThumbnail: View {
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(AppTheme.placeholderSurface)
+                        .fill(GalleryTheme.surface)
 
                     Image(systemName: "shippingbox.fill")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(AppTheme.textSecondary)
+                        .foregroundStyle(GalleryTheme.secondary)
                 }
             }
         }
@@ -430,7 +437,7 @@ private struct SouvenirMapView: UIViewRepresentable {
                 )
                 view.annotation = clusterAnnotation
                 view.canShowCallout = false
-                view.markerTintColor = AppTheme.UIColorTokens.accentSecondary
+                view.markerTintColor = UIColor(GalleryTheme.accent)
                 view.glyphText = "\(clusterAnnotation.memberAnnotations.count)"
                 displayPriority(view, asCluster: true)
                 return view
@@ -449,7 +456,7 @@ private struct SouvenirMapView: UIViewRepresentable {
             view.annotation = annotation
             view.canShowCallout = false
             view.clusteringIdentifier = Self.clusteringIdentifier
-            view.markerTintColor = AppTheme.UIColorTokens.accentPrimary
+            view.markerTintColor = UIColor(GalleryTheme.accent)
             view.glyphImage = UIImage(systemName: "shippingbox.fill")
             displayPriority(view, asCluster: false)
             return view
@@ -591,27 +598,10 @@ private extension Souvenir {
             gotItInCountry: gotItInCountryCode,
             latitude: gotItInLatitude,
             longitude: gotItInLongitude,
-            thumbnailData: mapThumbnailData
+            thumbnailData: primaryThumbnailData
         )
     }
 
-    private var mapThumbnailData: Data? {
-        let photoAssets = (photos as? Set<PhotoAsset>) ?? []
-        let sortedPhotoAssets = photoAssets.sorted { lhs, rhs in
-            if lhs.isPrimary != rhs.isPrimary {
-                return lhs.isPrimary && !rhs.isPrimary
-            }
-
-            if lhs.sortIndex != rhs.sortIndex {
-                return lhs.sortIndex < rhs.sortIndex
-            }
-
-            return (lhs.createdAt ?? .distantFuture) < (rhs.createdAt ?? .distantFuture)
-        }
-
-        return sortedPhotoAssets.first(where: { $0.thumbnailData != nil })?.thumbnailData
-            ?? sortedPhotoAssets.first(where: { $0.displayImageData != nil })?.displayImageData
-    }
 }
 
 private extension String {

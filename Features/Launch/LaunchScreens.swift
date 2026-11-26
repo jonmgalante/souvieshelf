@@ -1,6 +1,8 @@
+import CoreData
 import SwiftUI
 
 struct LaunchGateScreen: View {
+    @Environment(\.managedObjectContext) private var context
     @ObservedObject var store: AppStore
 
     var body: some View {
@@ -10,13 +12,26 @@ struct LaunchGateScreen: View {
                 VStack(spacing: AppSpacing.large) {
                     StateMessageView(
                         icon: "sparkles",
-                        title: "Starting SouvieShelf",
-                        message: "Checking for your library."
+                        title: store.joinInformation == nil ? "Starting SouvieShelf" : "Joining Our Library",
+                        message: store.joinInformation ?? "Checking for your library."
                     )
 
                     ProgressView()
                 }
                 .padding(AppSpacing.large)
+            case .waitingForSharedLibrary:
+                VStack(spacing: AppSpacing.medium) {
+                    ProgressView()
+                    Text("Joining Our Library").font(.title2.bold())
+                    Text("Your invitation was accepted. Waiting for iCloud to bring your shared shelf to this iPhone.")
+                        .multilineTextAlignment(.center)
+                    Button("Check again") { Task { await store.retryLaunch() } }
+                }
+                .padding(AppSpacing.large)
+                .onReceive(NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange,
+                                                               object: context.persistentStoreCoordinator)) { _ in
+                    Task { await store.refreshWaitingLibrary() }
+                }
             case .iCloudUnavailable:
                 ICloudRequiredScreen(store: store)
             case .pairing:

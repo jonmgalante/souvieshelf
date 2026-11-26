@@ -3,6 +3,8 @@ import SwiftUI
 struct AppShell: View {
     @EnvironmentObject private var environment: AppEnvironment
     @ObservedObject var store: AppStore
+    @State private var pendingSavedID: UUID?
+    @State private var recentSave: UUID?
 
     var body: some View {
         NavigationStack(path: $store.routePath) {
@@ -25,8 +27,8 @@ struct AppShell: View {
                     }
                     .tag(MainTab.map)
             }
-            .tint(AppTheme.librarySelectedTabAccent)
-            .toolbarBackground(LibraryHomeDesign.Colors.elevatedSurface, for: .tabBar)
+            .tint(store.selectedTab == .library ? GalleryTheme.accent : AppTheme.librarySelectedTabAccent)
+            .toolbarBackground(store.selectedTab == .library ? GalleryTheme.canvas : LibraryHomeDesign.Colors.elevatedSurface, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
             .navigationDestination(for: AppRoute.self) { route in
                 destination(for: route)
@@ -34,17 +36,29 @@ struct AppShell: View {
         }
         .appScreenBackground()
         .appNavigationChrome()
-        .sheet(isPresented: $store.isShowingAddSheet) {
+        .sheet(isPresented: $store.isShowingAddSheet, onDismiss: openSavedSouvenir) {
             if let activeLibraryContext = store.activeLibraryContext {
                 AddSouvenirSheet(
                     activeLibraryContext: activeLibraryContext,
                     dependencies: environment.dependencies,
-                    onSaved: { store.dismissAddSheet() }
+                    onSaved: { id in
+                        pendingSavedID = id
+                        store.dismissAddSheet()
+                    }
                 )
             } else {
                 AddUnavailableSheet(onDismiss: { store.dismissAddSheet() })
             }
         }
+    }
+
+    private func openSavedSouvenir() {
+        guard let id = pendingSavedID else { return }
+        pendingSavedID = nil
+        recentSave = id
+        store.selectTab(.library)
+        store.open(.souvenir(id))
+        AccessibilityNotification.Announcement("Saved to Our Library").post()
     }
 
     private var selectedTabBinding: Binding<MainTab> {
@@ -101,12 +115,14 @@ struct AppShell: View {
             if let activeLibraryContext = store.activeLibraryContext {
                 SouvenirDetailScreen(
                     souvenirID: souvenirID,
+                    isNewlySaved: recentSave == souvenirID,
                     activeLibraryContext: activeLibraryContext,
                     dependencies: environment.dependencies,
                     onOpenRoute: { nextRoute in
                         store.open(nextRoute)
                     }
                 )
+                .onDisappear { if recentSave == souvenirID { recentSave = nil } }
             } else {
                 RouteUnavailableScreen(route: route)
             }
@@ -116,18 +132,24 @@ struct AppShell: View {
                     tripID: tripID,
                     activeLibraryContext: activeLibraryContext,
                     dependencies: environment.dependencies,
-                    onOpenRoute: { nextRoute in
-                        store.open(nextRoute)
-                    },
-                    onViewOnMap: {
-                        store.showMap(
-                            filterContext: .trip(
-                                tripID,
-                                storeScope: activeLibraryContext.storeScope
-                            )
-                        )
-                    }
+                    onOpenRoute: store.open,
+                    onViewOnMap: { store.open(.tripMap(tripID)) }
                 )
+            } else {
+                RouteUnavailableScreen(route: route)
+            }
+        case let .tripSouvenir(tripID, souvenirID):
+            if let library = store.activeLibraryContext {
+                TripSouvenirBrowser(tripID: tripID, souvenirID: souvenirID, library: library,
+                                    dependencies: environment.dependencies, onOpenRoute: store.open)
+            } else {
+                RouteUnavailableScreen(route: route)
+            }
+        case .tripMap(let tripID):
+            if let library = store.activeLibraryContext {
+                MapScreen(filterContext: .trip(tripID, storeScope: library.storeScope),
+                          activeLibraryContext: library, mapRepository: environment.dependencies.mapRepository,
+                          onOpenRoute: store.open)
             } else {
                 RouteUnavailableScreen(route: route)
             }

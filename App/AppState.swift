@@ -11,6 +11,7 @@ final class AppStore: ObservableObject {
 
     @Published private(set) var phase: AppPhase = .launching
     @Published private(set) var activeLibraryContext: ActiveLibraryContext?
+    private(set) var shareAcceptanceStartedAt: Date?
     @Published var selectedTab: MainTab = .library
     @Published var routePath: [AppRoute] = []
     @Published var isShowingAddSheet = false
@@ -56,6 +57,10 @@ final class AppStore: ObservableObject {
     }
 
     func retryLaunch() async {
+        if phase == .waitingForSharedLibrary {
+            await refreshWaitingLibrary()
+            return
+        }
         if phase == .iCloudUnavailable, let pendingICloudAction {
             await retryPendingICloudAction(pendingICloudAction)
             return
@@ -106,6 +111,10 @@ final class AppStore: ObservableObject {
     }
 
     func open(_ route: AppRoute) {
+        if case .trip = route, let index = routePath.lastIndex(of: route) {
+            routePath.removeSubrange((index + 1)...)
+            return
+        }
         routePath.append(route)
     }
 
@@ -173,20 +182,32 @@ final class AppStore: ObservableObject {
         joinInformation = "Joining your shared library..."
 
         do {
+            let startedAt = Date()
             try await dependencies.bootstrapRepository.acceptShare(metadata: metadata)
-            await refreshLaunchState()
-
-            if activeLibraryContext?.storeScope != .sharedLibrary {
-                logger.warning("Share acceptance completed but the shared library is not resolved yet.")
-                joinInformation = "Your shared library was accepted, but it is still syncing to this iPhone. Retry in a moment if it does not appear automatically."
-                phase = .pairing
-            }
+            await waitForAcceptedLibrary(since: startedAt)
         } catch {
             logger.error("Failed accepting incoming CloudKit share metadata: \(error.localizedDescription, privacy: .public)")
             activeLibraryContext = nil
             joinInformation = error.localizedDescription
             phase = .pairing
         }
+    }
+
+    /// Share acceptance can finish before the participant's Library record arrives.
+    func waitForAcceptedLibrary(since startedAt: Date = .now) async {
+        shareAcceptanceStartedAt = startedAt
+        activeLibraryContext = nil
+        joinInformation = nil
+        phase = .waitingForSharedLibrary
+        await refreshWaitingLibrary()
+    }
+
+    func refreshWaitingLibrary() async {
+        guard phase == .waitingForSharedLibrary else { return }
+        let resolution = await dependencies.bootstrapRepository.resolveLaunchContext()
+        guard phase == .waitingForSharedLibrary, case .ready(let context) = resolution,
+              context.storeScope == .sharedLibrary else { return }
+        applyReadyState(context)
     }
 
     private func applyReadyState(_ context: ActiveLibraryContext) {

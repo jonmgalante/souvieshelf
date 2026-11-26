@@ -5,496 +5,372 @@ import UIKit
 struct LibraryScreen: View {
     @EnvironmentObject private var environment: AppEnvironment
     @ObservedObject var store: AppStore
-    @State private var selectedQuickAccess: LibraryQuickAccessSelection = .allItems
-    @State private var selectedItemFilter: LibraryItemFilter = .none
-    @State private var searchText = ""
-    @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
         Group {
-            if let activeLibraryContext = store.activeLibraryContext {
+            if let library = store.activeLibraryContext {
                 LibraryHomeContent(
-                    activeLibraryContext: activeLibraryContext,
-                    persistenceController: environment.dependencies.persistenceController,
-                    selectedQuickAccess: $selectedQuickAccess,
-                    selectedItemFilter: $selectedItemFilter,
-                    searchText: $searchText,
-                    isSearchFieldFocused: $isSearchFieldFocused,
-                    onAddTapped: {
-                        store.presentAddSheet()
-                    },
-                    onPartnerSettingsTapped: {
-                        store.open(.settings)
-                    },
-                    onOpen: { route in
-                        store.open(route)
-                    }
+                    library: library,
+                    persistence: environment.dependencies.persistenceController,
+                    shareAcceptanceStartedAt: store.shareAcceptanceStartedAt,
+                    onAdd: store.presentAddSheet,
+                    onOpen: store.open
                 )
+                .id("\(library.storeScope.rawValue)/\(library.libraryID)")
             } else {
-                ScrollView {
-                    StateMessageView(
-                        icon: "books.vertical.fill",
-                        title: "Our Library Is Loading",
-                        message: "SouvieShelf is still resolving the active library before showing your saved items, trips, and places."
-                    )
-                    .padding(AppSpacing.large)
-                }
+                ProgressView("Opening Our Library…")
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .foregroundStyle(GalleryTheme.ink)
+        .tint(GalleryTheme.accent)
+        .background { GalleryTheme.canvas.ignoresSafeArea() }
         .toolbar(.hidden, for: .navigationBar)
-        .background {
-            LibraryHomeDesign.Colors.phoneSurface
-                .ignoresSafeArea()
-        }
-        .onChange(of: activeLibraryIdentity) { _, _ in
-            resetChromeState()
-        }
-    }
-
-    private var activeLibraryIdentity: String {
-        guard let activeLibraryContext = store.activeLibraryContext else {
-            return "none"
-        }
-
-        return "\(activeLibraryContext.libraryID.uuidString)|\(activeLibraryContext.storeScope.rawValue)"
-    }
-
-    private func resetChromeState() {
-        selectedQuickAccess = .allItems
-        selectedItemFilter = .none
-        searchText = ""
-        isSearchFieldFocused = false
     }
 }
 
 private struct LibraryHomeContent: View {
-    let activeLibraryContext: ActiveLibraryContext
-    let onAddTapped: () -> Void
-    let onPartnerSettingsTapped: () -> Void
+    let library: ActiveLibraryContext
+    let persistence: PersistenceController
+    let shareAcceptanceStartedAt: Date?
+    let onAdd: () -> Void
     let onOpen: (AppRoute) -> Void
-
-    @Binding private var selectedQuickAccess: LibraryQuickAccessSelection
-    @Binding private var selectedItemFilter: LibraryItemFilter
-    @Binding private var searchText: String
-    @FocusState.Binding private var isSearchFieldFocused: Bool
     @FetchRequest private var souvenirs: FetchedResults<Souvenir>
     @FetchRequest private var trips: FetchedResults<Trip>
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var today = Date.now
+    @State private var segment: LibrarySegment = .items
+    @State private var filter: LibraryItemFilter = .none
+    @State private var searchText = ""
+    @State private var searchPresented = false
+    @FocusState private var searchFocused: Bool
+    @State private var sharedImportFinished = false
+    @State private var importRevision = 0
 
-    init(
-        activeLibraryContext: ActiveLibraryContext,
-        persistenceController: PersistenceController,
-        selectedQuickAccess: Binding<LibraryQuickAccessSelection>,
-        selectedItemFilter: Binding<LibraryItemFilter>,
-        searchText: Binding<String>,
-        isSearchFieldFocused: FocusState<Bool>.Binding,
-        onAddTapped: @escaping () -> Void,
-        onPartnerSettingsTapped: @escaping () -> Void,
-        onOpen: @escaping (AppRoute) -> Void
-    ) {
-        self.activeLibraryContext = activeLibraryContext
-        self.onAddTapped = onAddTapped
-        self.onPartnerSettingsTapped = onPartnerSettingsTapped
+    init(library: ActiveLibraryContext, persistence: PersistenceController, shareAcceptanceStartedAt: Date?,
+         onAdd: @escaping () -> Void, onOpen: @escaping (AppRoute) -> Void) {
+        self.library = library
+        self.persistence = persistence
+        self.shareAcceptanceStartedAt = shareAcceptanceStartedAt
+        self.onAdd = onAdd
         self.onOpen = onOpen
-        self._selectedQuickAccess = selectedQuickAccess
-        self._selectedItemFilter = selectedItemFilter
-        self._searchText = searchText
-        self._isSearchFieldFocused = isSearchFieldFocused
-        self._souvenirs = FetchRequest(
-            fetchRequest: LibraryFetchRequestFactory.souvenirs(
-                for: activeLibraryContext,
-                persistenceController: persistenceController
-            ),
-            animation: .default
-        )
-        self._trips = FetchRequest(
-            fetchRequest: LibraryFetchRequestFactory.trips(
-                for: activeLibraryContext,
-                persistenceController: persistenceController
-            ),
-            animation: .default
-        )
+        _souvenirs = FetchRequest(fetchRequest: LibraryFetchRequestFactory.souvenirs(for: library, persistenceController: persistence))
+        _trips = FetchRequest(fetchRequest: LibraryFetchRequestFactory.trips(for: library, persistenceController: persistence))
     }
 
-    private var activeSouvenirs: [Souvenir] {
-        Array(souvenirs)
+    private var state: LibraryContentState {
+        .resolve(souvenirCount: souvenirs.count, tripCount: trips.count,
+                 awaitingImport: library.storeScope == .sharedLibrary && !sharedImportFinished)
     }
 
-    private var activeTrips: [Trip] {
-        Array(trips)
+    private var needsImportCheck: Bool {
+        library.storeScope == .sharedLibrary && souvenirs.isEmpty && trips.isEmpty
     }
 
-    private var tripMetricsByID: [UUID: LibraryTripMetrics] {
-        var metrics: [UUID: LibraryTripMetrics] = [:]
+    private var query: String? { searchText.normalizedForDisplay?.localizedLowercase }
 
-        for souvenir in activeSouvenirs {
-            guard let trip = souvenir.trip,
-                  trip.deletedAt == nil,
-                  let tripID = trip.id else {
-                continue
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                header
+                switch state {
+                case .loading:
+                    ProgressView("Syncing your shared library…")
+                        .frame(maxWidth: .infinity).padding(.vertical, 88)
+                case .empty:
+                    GalleryEmptyShelf(onAdd: onAdd)
+                case .populated:
+                    browsingControls
+                    if searchPresented { searchField }
+                    switch segment {
+                    case .items: shelf
+                    case .trips: tripList
+                    case .places: placeList
+                    }
+                }
             }
-
-            var summary = metrics[tripID] ?? LibraryTripMetrics(
-                souvenirCount: 0,
-                coverThumbnailData: nil
-            )
-            summary.souvenirCount += 1
-
-            if summary.coverThumbnailData == nil {
-                summary.coverThumbnailData = souvenir.primaryThumbnailData
-            }
-
-            metrics[tripID] = summary
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+            .padding(.bottom, 32)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { today = .now }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            today = .now
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSPersistentCloudKitContainer.eventChangedNotification, object: persistence.container)) { note in
+            guard needsImportCheck,
+                  let event = note.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey] as? NSPersistentCloudKitContainer.Event,
+                  event.type == .import,
+                  event.storeIdentifier == (try? persistence.persistentStore(for: .sharedLibrary).identifier) else { return }
+            if event.endDate == nil { sharedImportFinished = false }
+            importRevision += 1
+        }
+        .task(id: needsImportCheck ? importRevision : -1) {
+            guard needsImportCheck else { return }
+            let finished = await persistence.hasFinishedSharedImport(since: shareAcceptanceStartedAt)
+            if !Task.isCancelled { sharedImportFinished = finished }
+        }
+    }
 
+    private var header: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) {
+                libraryTitle
+                Spacer(minLength: 4)
+                headerActions
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                libraryTitle
+                headerActions
+            }
+        }
+        .padding(.bottom, 12)
+    }
+
+    private var libraryTitle: some View {
+        Text("Our Library")
+            .font(.system(.largeTitle, design: .serif, weight: .medium))
+            .fixedSize(horizontal: true, vertical: false)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    private var headerActions: some View {
+        HStack(spacing: 8) {
+            if state == .populated { GalleryAddButton(title: "Add", action: onAdd) }
+            Button { onOpen(.settings) } label: {
+                Image(systemName: "gearshape").font(.title3)
+                    .frame(minWidth: 44, minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Library settings")
+        }
+    }
+
+    private var browsingControls: some View {
+        HStack(spacing: 4) {
+            if typeSize.isAccessibilitySize {
+                Menu {
+                    Picker("Browse library", selection: $segment) {
+                        ForEach(LibrarySegment.allCases, id: \.self) { tab in
+                            Text(tab.galleryTitle).tag(tab)
+                        }
+                    }
+                } label: {
+                    Label(segment.galleryTitle, systemImage: "chevron.down")
+                        .labelStyle(.titleAndIcon)
+                }
+            } else {
+                ForEach(LibrarySegment.allCases, id: \.self) { tab in
+                    Button { segment = tab } label: {
+                        Text(tab.galleryTitle)
+                            .font(.subheadline.weight(segment == tab ? .bold : .medium))
+                            .foregroundStyle(segment == tab ? GalleryTheme.accent : GalleryTheme.secondary)
+                            .frame(minHeight: 44)
+                            .padding(.horizontal, 5)
+                            .overlay(alignment: .bottom) {
+                                if segment == tab { Capsule().fill(GalleryTheme.accent).frame(height: 2) }
+                            }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(segment == tab ? .isSelected : [])
+                }
+            }
+            Spacer(minLength: 0)
+            Button {
+                searchPresented.toggle()
+                if searchPresented { searchFocused = true } else { searchText = "" }
+            } label: {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(searchPresented ? GalleryTheme.accent : GalleryTheme.ink)
+                    .frame(minWidth: 44, minHeight: 44)
+            }
+            .accessibilityLabel(searchPresented ? "Close search" : "Search library")
+            if segment == .items {
+                Menu {
+                    Picker("Filter souvenirs", selection: $filter) {
+                        ForEach(LibraryItemFilter.allCases, id: \.self) { choice in
+                            Text(choice.title).tag(choice)
+                        }
+                    }
+                } label: {
+                    Image(systemName: filter == .none ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+                        .foregroundStyle(filter == .none ? GalleryTheme.ink : GalleryTheme.accent)
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .accessibilityLabel("Filter souvenirs")
+                .accessibilityValue(filter.title)
+            }
+        }
+        .font(.body)
+        .overlay(alignment: .bottom) { Rectangle().fill(GalleryTheme.rule).frame(height: 0.5).accessibilityHidden(true) }
+        .onChange(of: segment) { _, _ in searchFocused = false }
+    }
+
+    private var searchField: some View {
+        HStack {
+            Image(systemName: "magnifyingglass").foregroundStyle(GalleryTheme.secondary).accessibilityHidden(true)
+            TextField("Search \(segment.galleryTitle.lowercased())", text: $searchText)
+                .focused($searchFocused)
+                .textInputAutocapitalization(.never)
+                .submitLabel(.search)
+            if !searchText.isEmpty {
+                Button { searchText = "" } label: { Image(systemName: "xmark.circle.fill").frame(minWidth: 44, minHeight: 44) }
+                    .accessibilityLabel("Clear search")
+            }
+        }
+        .padding(.horizontal, 12).frame(minHeight: 46)
+        .background(GalleryTheme.surface, in: RoundedRectangle(cornerRadius: 10))
+        .padding(.top, 12)
+        .onAppear { searchFocused = true }
+    }
+
+    @ViewBuilder private var shelf: some View {
+        let matches = souvenirs.filter { souvenir in
+            filter.matches(souvenir, on: today) && (query.map { souvenir.matchesLibrarySearch(query: $0) } ?? true)
+        }
+        let featured = filter == .none && query == nil ? GalleryDailyFeature.pick(from: matches, on: today) : nil
+        let remaining = matches.filter { $0.objectID != featured?.objectID }
+        if let featured {
+            souvenirButton(featured, featured: true, anniversary: GalleryDailyFeature.isAnniversary(featured.acquiredDate, on: today))
+                .padding(.top, 20)
+        }
+        if !remaining.isEmpty {
+            HStack(alignment: .firstTextBaseline) {
+                Text(filter != .none ? filter.title : query == nil ? "On the shelf" : "Search results")
+                    .font(.system(.title2, design: .serif, weight: .medium))
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                Text(remaining.count.formatted())
+                    .font(.subheadline.monospacedDigit()).foregroundStyle(GalleryTheme.secondary)
+                    .accessibilityLabel(remaining.count == 1 ? "1 souvenir" : "\(remaining.count) souvenirs")
+            }
+            .padding(.top, 22).padding(.bottom, 12)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 14, alignment: .topLeading),
+                                count: typeSize.isAccessibilitySize ? 1 : 2)
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 19) {
+                ForEach(remaining, id: \.objectID) { souvenir in souvenirButton(souvenir, featured: false) }
+            }
+        } else if featured == nil {
+            if query != nil {
+                GalleryNotice("No matching souvenirs", "Try a different name, place, trip, or story.", icon: "magnifyingglass")
+            } else if filter == .needsInfo {
+                GalleryNotice("Everything is filled in", "Your souvenirs have a name, trip, and place.", icon: "checkmark.circle")
+            } else if filter == .onThisDay {
+                GalleryNotice("No anniversaries today", "Souvenirs acquired on this date will appear here.", icon: "calendar")
+            } else {
+                GalleryNotice("No souvenirs yet", "Add a souvenir to start filling your shelf.", icon: "photo")
+            }
+        }
+    }
+
+    private func souvenirButton(_ souvenir: Souvenir, featured: Bool, anniversary: Bool = false) -> some View {
+        Button {
+            if let id = souvenir.id { onOpen(.souvenir(id)) }
+        } label: {
+            GallerySouvenirView(souvenir: souvenir, featured: featured, anniversary: anniversary)
+        }
+        .buttonStyle(.plain)
+        .disabled(souvenir.id == nil)
+        .accessibilityIdentifier(featured ? "gallery.featured" : "gallery.tile")
+    }
+
+    @ViewBuilder private var tripList: some View {
+        let visible = trips.filter { trip in query.map { trip.matchesLibrarySearch(query: $0) } ?? true }
+        if visible.isEmpty {
+            GalleryNotice(query == nil ? "No trips yet" : "No matching trips",
+                          query == nil ? "Assign a souvenir to a trip to find it here." : "Try another trip name or date.", icon: "suitcase")
+        } else {
+            let metrics = tripMetrics
+            LazyVStack(spacing: 0) {
+                ForEach(visible, id: \.objectID) { trip in
+                    let summary = trip.id.flatMap { metrics[$0] } ?? .empty
+                    Button {
+                        if let id = trip.id { onOpen(.trip(id)) }
+                    } label: {
+                        GalleryBrowseRow(title: trip.displayTitle, detail: trip.dateRangeSummary, count: summary.souvenirCount,
+                                         thumbnail: summary.coverThumbnailData, symbol: "suitcase")
+                    }
+                    .buttonStyle(.plain).disabled(trip.id == nil)
+                }
+            }
+        }
+    }
+
+    private var tripMetrics: [UUID: LibraryTripMetrics] {
+        var metrics: [UUID: LibraryTripMetrics] = [:]
+        for souvenir in souvenirs {
+            guard let trip = souvenir.trip, trip.deletedAt == nil, let id = trip.id else { continue }
+            var entry = metrics[id] ?? .empty
+            entry.souvenirCount += 1
+            if entry.coverThumbnailData == nil { entry.coverThumbnailData = souvenir.primaryThumbnailData }
+            metrics[id] = entry
+        }
         return metrics
     }
 
-    private var placeGroups: [PlaceGroup] {
-        PlacePresentationLogic.groups(
-            from: activeSouvenirs.compactMap(\.placeCandidate)
-        )
-    }
-
-    private func tripMetrics(for trip: Trip) -> LibraryTripMetrics {
-        guard let tripID = trip.id else {
-            return .empty
-        }
-
-        return tripMetricsByID[tripID] ?? .empty
-    }
-
-    private var recentTrip: Trip? {
-        activeTrips.first
-    }
-
-    private var primarySurface: LibraryPrimarySurface {
-        switch selectedQuickAccess {
-        case .trips:
-            return .trips
-        case .collections:
-            return .places
-        case .allItems:
-            return .items
-        }
-    }
-
-    private var needsInfoCount: Int {
-        activeSouvenirs.filter(\.needsAttention).count
-    }
-
-    private var normalizedSearchQuery: String? {
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else {
-            return nil
-        }
-
-        return query.localizedLowercase
-    }
-
-    private var filteredSouvenirs: [Souvenir] {
-        activeSouvenirs
-            .filter { selectedItemFilter.matches($0) }
-            .filter { souvenir in
-                guard let normalizedSearchQuery else {
-                    return true
-                }
-
-                return souvenir.matchesLibrarySearch(query: normalizedSearchQuery)
-            }
-    }
-
-    private var filteredTrips: [Trip] {
-        activeTrips.filter { trip in
-            guard let normalizedSearchQuery else {
-                return true
-            }
-
-            return trip.matchesLibrarySearch(query: normalizedSearchQuery)
-        }
-    }
-
-    private var filteredPlaceGroups: [PlaceGroup] {
-        placeGroups.filter { placeGroup in
-            guard let normalizedSearchQuery else {
-                return true
-            }
-
-            return placeGroup.matchesLibrarySearch(query: normalizedSearchQuery)
-        }
-    }
-
-    private var hasVisibleSearchOrFilter: Bool {
-        normalizedSearchQuery != nil || selectedItemFilter != .none
-    }
-
-    private var itemGridColumns: [GridItem] {
-        Array(
-            repeating: GridItem(
-                .flexible(),
-                spacing: LibraryHomeDesign.Spacing.gridGap
-            ),
-            count: LibraryHomeDesign.Layout.gridColumnCount
-        )
-    }
-
-    private var filteredItemsEmptyState: LibraryEmptyPresentation {
-        if normalizedSearchQuery != nil {
-            return LibraryEmptyPresentation(
-                icon: "magnifyingglass",
-                title: "No results",
-                message: "Try a different search or clear the current filter."
-            )
-        }
-
-        switch selectedItemFilter {
-        case .onThisDay:
-            let dateLabel = Date.now.formatted(.dateTime.month(.abbreviated).day())
-            return LibraryEmptyPresentation(
-                icon: "calendar",
-                title: "Nothing from \(dateLabel)",
-                message: "No souvenirs in this library were saved on this date."
-            )
-        case .needsInfo:
-            return LibraryEmptyPresentation(
-                icon: "checkmark.circle",
-                title: "Everything looks filled in",
-                message: "No souvenirs in this library are missing their key details right now."
-            )
-        case .none:
-            return LibraryEmptyPresentation(
-                icon: "shippingbox.fill",
-                title: "No items yet",
-                message: "Souvenirs will land here as soon as you start adding keepsakes to this library."
-            )
-        }
-    }
-
-    private func openRecentTrip() {
-        selectedItemFilter = .none
-        isSearchFieldFocused = false
-
-        if let tripID = recentTrip?.id {
-            onOpen(.trip(tripID))
+    @ViewBuilder private var placeList: some View {
+        let places = PlacePresentationLogic.groups(from: souvenirs.compactMap(\.placeCandidate))
+            .filter { place in query.map { place.matchesLibrarySearch(query: $0) } ?? true }
+        if places.isEmpty {
+            GalleryNotice(query == nil ? "No places yet" : "No matching places",
+                          query == nil ? "Places come from where you got each souvenir." : "Try another place or country.", icon: "mappin")
         } else {
-            selectedQuickAccess = .trips
-        }
-    }
-
-    private func toggleTrips() {
-        selectedItemFilter = .none
-        isSearchFieldFocused = false
-        selectedQuickAccess = selectedQuickAccess == .trips ? .allItems : .trips
-    }
-
-    private func toggleCollections() {
-        selectedItemFilter = .none
-        isSearchFieldFocused = false
-        selectedQuickAccess = selectedQuickAccess == .collections ? .allItems : .collections
-    }
-
-    private func toggleItemFilter(_ filter: LibraryItemFilter) {
-        selectedQuickAccess = .allItems
-        isSearchFieldFocused = false
-        selectedItemFilter = selectedItemFilter == filter ? .none : filter
-    }
-
-    private func focusSearch() {
-        selectedQuickAccess = .allItems
-        selectedItemFilter = .none
-        isSearchFieldFocused = true
-    }
-
-    private func handleMicrophoneFallback() {
-        // The screen shows a microphone affordance, but the app does not support voice search.
-        // Focusing the real search field is the smallest honest fallback and still enables
-        // system keyboard dictation when available.
-        isSearchFieldFocused = true
-    }
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                LibraryHeader(
-                    onAddTapped: onAddTapped,
-                    onPartnerSettingsTapped: onPartnerSettingsTapped
-                )
-                .padding(.bottom, LibraryHomeDesign.Spacing.headerToSearch)
-
-                LibrarySearchChrome(
-                    placeholder: LibraryHomePreviewFixture.extractedDemo.searchPlaceholder,
-                    searchText: $searchText,
-                    isSearchFieldFocused: _isSearchFieldFocused,
-                    onMicrophoneTapped: {
-                        handleMicrophoneFallback()
-                    }
-                )
-                .padding(.bottom, LibraryHomeDesign.Spacing.searchToRibbon)
-
-                LibraryQuickAccessBand(
-                    recentTripTitle: recentTrip?.displayTitle,
-                    onOpenRecentTrip: {
-                        openRecentTrip()
-                    },
-                    onOpenOnThisDay: {
-                        toggleItemFilter(.onThisDay)
-                    },
-                    onOpenTrips: {
-                        toggleTrips()
-                    },
-                    onOpenCollections: {
-                        toggleCollections()
-                    },
-                    onOpenTags: {
-                        focusSearch()
-                    },
-                    onOpenNeedsInfo: {
-                        toggleItemFilter(.needsInfo)
-                    },
-                    isOnThisDaySelected: selectedItemFilter == .onThisDay,
-                    isTripsSelected: selectedQuickAccess == .trips,
-                    isCollectionsSelected: selectedQuickAccess == .collections,
-                    isTagsSelected: isSearchFieldFocused || normalizedSearchQuery != nil,
-                    isNeedsInfoSelected: selectedItemFilter == .needsInfo,
-                    onThisDaySubtitle: Date.now.formatted(.dateTime.month(.abbreviated).day()),
-                    tripCount: activeTrips.count,
-                    collectionCount: placeGroups.count,
-                    tagsSubtitle: normalizedSearchQuery == nil ? "Search" : "Active",
-                    needsInfoCount: needsInfoCount
-                )
-                .padding(.bottom, LibraryHomeDesign.Spacing.ribbonToGrid)
-
-                content
-            }
-            .padding(.horizontal, LibraryHomeDesign.Spacing.contentInsetX)
-            .padding(.top, LibraryHomeDesign.Spacing.statusToHeader)
-            .padding(.bottom, LibraryHomeDesign.Spacing.scrollContentBottomReserve)
-        }
-        .scrollDismissesKeyboard(.interactively)
-    }
-
-    @ViewBuilder
-    private var content: some View {
-        switch primarySurface {
-        case .items:
-            itemsContent
-        case .trips:
-            tripsContent
-        case .places:
-            placesContent
-        }
-    }
-
-    @ViewBuilder
-    private var itemsContent: some View {
-        if filteredSouvenirs.isEmpty {
-            if hasVisibleSearchOrFilter {
-                LibraryEmptyStateView(
-                    icon: filteredItemsEmptyState.icon,
-                    title: filteredItemsEmptyState.title,
-                    message: filteredItemsEmptyState.message
-                )
-            } else {
-                LibraryEmptyStateView(
-                    icon: "shippingbox.fill",
-                    title: "No items yet",
-                    message: "Souvenirs will land here as soon as you start adding keepsakes to this library."
-                )
-            }
-        } else {
-            LazyVGrid(columns: itemGridColumns, spacing: LibraryHomeDesign.Spacing.gridGap) {
-                ForEach(filteredSouvenirs, id: \.objectID) { souvenir in
-                    if let souvenirID = souvenir.id {
-                        Button {
-                            onOpen(.souvenir(souvenirID))
-                        } label: {
-                            LibraryGridTile(
-                                souvenir: souvenir,
-                                isSharedLibrary: activeLibraryContext.storeScope == .sharedLibrary
-                            )
-                        }
-                        .buttonStyle(LibraryGridTileButtonStyle())
-                    } else {
-                        LibraryGridTile(
-                            souvenir: souvenir,
-                            isSharedLibrary: activeLibraryContext.storeScope == .sharedLibrary
-                        )
-                    }
-                }
-            }
-            .padding(.bottom, 6)
-        }
-    }
-
-    @ViewBuilder
-    private var tripsContent: some View {
-        if filteredTrips.isEmpty {
-            if normalizedSearchQuery != nil {
-                LibraryEmptyStateView(
-                    icon: "magnifyingglass",
-                    title: "No trips found",
-                    message: "Try another search for a trip title or date."
-                )
-            } else {
-                LibraryEmptyStateView(
-                    icon: "suitcase.rolling.fill",
-                    title: "No trips yet",
-                    message: "Create a trip to group souvenirs from the same journey."
-                )
-            }
-        } else {
-            LazyVStack(spacing: AppSpacing.medium) {
-                ForEach(filteredTrips, id: \.objectID) { trip in
-                    if let tripID = trip.id {
-                        Button {
-                            onOpen(.trip(tripID))
-                        } label: {
-                            TripRowCard(
-                                trip: trip,
-                                souvenirCount: tripMetrics(for: trip).souvenirCount,
-                                coverThumbnailData: tripMetrics(for: trip).coverThumbnailData
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    } else {
-                        TripRowCard(
-                            trip: trip,
-                            souvenirCount: tripMetrics(for: trip).souvenirCount,
-                            coverThumbnailData: tripMetrics(for: trip).coverThumbnailData
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var placesContent: some View {
-        if filteredPlaceGroups.isEmpty {
-            if normalizedSearchQuery != nil {
-                LibraryEmptyStateView(
-                    icon: "magnifyingglass",
-                    title: "No collections found",
-                    message: "Try another search for a place or country."
-                )
-            } else {
-                LibraryEmptyStateView(
-                    icon: "mappin.and.ellipse",
-                    title: "No places yet",
-                    message: "Places appear automatically from each souvenir's \"Got it in\" location."
-                )
-            }
-        } else {
-            LazyVStack(spacing: AppSpacing.medium) {
-                ForEach(filteredPlaceGroups) { placeGroup in
-                    Button {
-                        onOpen(.place(placeGroup.key))
-                    } label: {
-                        PlaceRowCard(placeGroup: placeGroup)
+            LazyVStack(spacing: 0) {
+                ForEach(places) { place in
+                    Button { onOpen(.place(place.key)) } label: {
+                        GalleryBrowseRow(title: place.title, detail: nil, count: place.souvenirCount,
+                                         thumbnail: place.thumbnailData, symbol: "mappin")
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
+    }
+}
+
+private extension LibrarySegment {
+    var galleryTitle: String { self == .items ? "Souvenirs" : title }
+}
+
+private struct GallerySouvenirView: View {
+    @ObservedObject var souvenir: Souvenir
+    let featured: Bool
+    let anniversary: Bool
+
+    var body: some View {
+        let location = souvenir.galleryLocation ?? souvenir.visibleTripTitle
+        let story = souvenir.story?.galleryStoryExcerpt ?? (location != souvenir.visibleTripTitle ? souvenir.visibleTripTitle : nil)
+        GalleryObject(title: souvenir.displayTitle, location: location, story: story, featured: featured, anniversary: anniversary) {
+            if let photo = souvenir.galleryPhoto {
+                GalleryPhoto(photo: photo, featured: featured)
+            } else {
+                GalleryPlaceholder(symbol: "photo")
+            }
+        }
+    }
+}
+
+enum GalleryDailyFeature {
+    static func isAnniversary(_ acquired: Date?, on day: Date, calendar: Calendar = .autoupdatingCurrent) -> Bool {
+        guard let acquired, calendar.compare(acquired, to: day, toGranularity: .year) == .orderedAscending else { return false }
+        return calendar.dateComponents([.month, .day], from: acquired) == calendar.dateComponents([.month, .day], from: day)
+    }
+
+    static func pick(from souvenirs: [Souvenir], on day: Date, calendar: Calendar = .autoupdatingCurrent) -> Souvenir? {
+        let active = souvenirs.filter { $0.id != nil && $0.deletedAt == nil }
+        let anniversaries = active.filter { isAnniversary($0.acquiredDate, on: day, calendar: calendar) }
+        let candidates = anniversaries.isEmpty ? active : anniversaries
+        let withContext = candidates.filter { $0.story.normalizedDisplayValue != nil || $0.visibleTripTitle != nil }
+        let pool = (withContext.isEmpty ? candidates : withContext).sorted {
+            ($0.id?.uuidString ?? "") < ($1.id?.uuidString ?? "")
+        }
+        guard !pool.isEmpty else { return nil }
+        let dayNumber = calendar.ordinality(of: .day, in: .era, for: day) ?? 0
+        return pool[dayNumber % pool.count]
     }
 }
 
@@ -661,108 +537,6 @@ private struct LibrarySearchChrome: View {
     }
 }
 
-private struct LibraryQuickAccessBand: View {
-    let recentTripTitle: String?
-    let onOpenRecentTrip: () -> Void
-    let onOpenOnThisDay: () -> Void
-    let onOpenTrips: () -> Void
-    let onOpenCollections: () -> Void
-    let onOpenTags: () -> Void
-    let onOpenNeedsInfo: () -> Void
-    let isOnThisDaySelected: Bool
-    let isTripsSelected: Bool
-    let isCollectionsSelected: Bool
-    let isTagsSelected: Bool
-    let isNeedsInfoSelected: Bool
-    let onThisDaySubtitle: String
-    let tripCount: Int
-    let collectionCount: Int
-    let tagsSubtitle: String
-    let needsInfoCount: Int
-
-    var body: some View {
-        HStack(spacing: 0) {
-            LibraryQuickAccessButton(
-                title: "Recent Trip",
-                subtitle: recentTripTitle ?? "No trips yet",
-                artwork: .asset(.featureRecentTripAmalfiCoast),
-                accent: nil,
-                isSelected: false,
-                action: onOpenRecentTrip
-            )
-
-            LibraryQuickAccessButton(
-                title: "On This Day",
-                subtitle: onThisDaySubtitle,
-                artwork: .icon(.onThisDay),
-                accent: .teal,
-                isSelected: isOnThisDaySelected,
-                action: onOpenOnThisDay
-            )
-
-            LibraryQuickAccessButton(
-                title: "Trips",
-                subtitle: "\(tripCount)",
-                artwork: .icon(.trips),
-                accent: .teal,
-                isSelected: isTripsSelected,
-                action: onOpenTrips
-            )
-
-            LibraryQuickAccessButton(
-                title: "Collections",
-                subtitle: "\(collectionCount)",
-                artwork: .icon(.collections),
-                accent: .teal,
-                isSelected: isCollectionsSelected,
-                action: onOpenCollections
-            )
-
-            LibraryQuickAccessButton(
-                title: "Tags",
-                subtitle: tagsSubtitle,
-                artwork: .icon(.tags),
-                accent: .teal,
-                isSelected: isTagsSelected,
-                action: onOpenTags
-            )
-
-            LibraryQuickAccessButton(
-                title: "Needs Info",
-                subtitle: "\(needsInfoCount)",
-                artwork: .icon(.needsInfo),
-                accent: .amber,
-                isSelected: isNeedsInfoSelected,
-                action: onOpenNeedsInfo
-            )
-        }
-        .padding(.horizontal, LibraryHomeDesign.Spacing.ribbonPaddingX)
-        .padding(.top, LibraryHomeDesign.Spacing.ribbonPaddingTop)
-        .padding(.bottom, LibraryHomeDesign.Spacing.ribbonPaddingBottom)
-        .background(
-            RoundedRectangle(
-                cornerRadius: LibraryHomeDesign.CornerRadius.featureRibbon,
-                style: .continuous
-            )
-            .fill(LibraryHomeDesign.Colors.elevatedSurface)
-        )
-        .overlay(
-            RoundedRectangle(
-                cornerRadius: LibraryHomeDesign.CornerRadius.featureRibbon,
-                style: .continuous
-            )
-            .stroke(LibraryHomeDesign.Colors.subtleBorder, lineWidth: LibraryHomeDesign.Border.subtleWidth)
-        )
-        .shadow(
-            color: LibraryHomeDesign.Colors.ribbonShadow,
-            radius: LibraryHomeDesign.Shadow.ribbonRadius,
-            y: LibraryHomeDesign.Shadow.ribbonYOffset
-        )
-        .accessibilityLabel("Library sections")
-        .accessibilityIdentifier("library.quick_access")
-    }
-}
-
 private struct LibraryQuickAccessButton: View {
     let title: String
     let subtitle: String
@@ -904,99 +678,6 @@ private struct LibraryPanel<Content: View>: View {
     }
 }
 
-private struct LibraryGridTile: View {
-    let souvenir: Souvenir
-    let isSharedLibrary: Bool
-
-    private var overlayTitle: String? {
-        souvenir.gotItInSummary
-    }
-
-    private var overlaySubtitle: String? {
-        souvenir.shortAcquiredSummary
-    }
-
-    private var showsMetadata: Bool {
-        overlayTitle != nil || overlaySubtitle != nil
-    }
-
-    private var metadataGradientStart: Color {
-        let searchableText = [
-            overlayTitle?.localizedLowercase,
-            overlaySubtitle?.localizedLowercase
-        ]
-        .compactMap { $0 }
-        .joined(separator: " ")
-
-        if searchableText.contains("marrakech") || searchableText.contains("morocco") {
-            return LibraryHomeDesign.Colors.marrakechGradientStart
-        }
-
-        return LibraryHomeDesign.Colors.positanoGradientStart
-    }
-
-    private var accessibilityLabel: String {
-        var parts = [souvenir.displayTitle]
-
-        if let tripTitle = souvenir.visibleTripTitle {
-            parts.append(tripTitle)
-        }
-
-        if let placeSummary = souvenir.gotItInSummary {
-            parts.append(placeSummary)
-        }
-
-        if let dateSummary = souvenir.acquiredOrUpdatedSummary {
-            parts.append(dateSummary)
-        }
-
-        if isSharedLibrary {
-            parts.append("Shared library")
-        }
-
-        if souvenir.needsAttention {
-            parts.append("Needs info")
-        }
-
-        return parts.joined(separator: ", ")
-    }
-
-    var body: some View {
-        ZStack {
-            LibraryTileImage(
-                data: souvenir.primaryThumbnailData,
-                placeholderSystemImage: "shippingbox.fill"
-            )
-        }
-        .overlay(alignment: .bottomLeading) {
-            if showsMetadata {
-                LibraryGridMetadataOverlay(
-                    title: overlayTitle,
-                    subtitle: overlaySubtitle,
-                    gradientStart: metadataGradientStart
-                )
-            }
-        }
-        .overlay(alignment: .bottom) {
-            if isSharedLibrary {
-                LibraryTileBadge(style: .shared)
-                    .padding(.bottom, LibraryHomeDesign.Spacing.overlayInset)
-            }
-        }
-        .overlay(alignment: .bottomTrailing) {
-            if souvenir.needsAttention {
-                LibraryTileBadge(style: .needsInfo)
-                    .padding(.trailing, LibraryHomeDesign.Spacing.overlayInset)
-                    .padding(.bottom, LibraryHomeDesign.Spacing.overlayInset)
-            }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: LibraryHomeDesign.CornerRadius.gridCard, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: LibraryHomeDesign.CornerRadius.gridCard, style: .continuous))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabel)
-    }
-}
-
 private struct LibraryGridMetadataOverlay: View {
     let title: String?
     let subtitle: String?
@@ -1051,44 +732,6 @@ private struct LibraryGridMetadataOverlay: View {
             )
         }
         .allowsHitTesting(false)
-    }
-}
-
-private struct LibraryTileImage: View {
-    let data: Data?
-    let placeholderSystemImage: String
-
-    var body: some View {
-        Group {
-            if let data,
-               let image = UIImage(data: data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                ZStack {
-                    RoundedRectangle(
-                        cornerRadius: LibraryHomeDesign.CornerRadius.gridCard,
-                        style: .continuous
-                    )
-                    .fill(LibraryHomeDesign.Colors.outerCanvas)
-
-                    Image(systemName: placeholderSystemImage)
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(LibraryHomeDesign.Colors.textMuted)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(LibraryHomeDesign.Layout.gridCardAspectRatio, contentMode: .fit)
-        .clipped()
-        .overlay(
-            RoundedRectangle(
-                cornerRadius: LibraryHomeDesign.CornerRadius.gridCard,
-                style: .continuous
-            )
-            .stroke(LibraryHomeDesign.Colors.subtleBorder.opacity(0.5), lineWidth: 0.6)
-        )
     }
 }
 
@@ -1192,57 +835,29 @@ private struct LibraryTileBadge: View {
     }
 }
 
-private struct LibraryGridTileButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .overlay(
-                RoundedRectangle(
-                    cornerRadius: LibraryHomeDesign.CornerRadius.gridCard,
-                    style: .continuous
-                )
-                    .stroke(
-                        configuration.isPressed ? LibraryHomeDesign.Colors.terracotta : Color.clear,
-                        lineWidth: LibraryHomeDesign.Border.selectedCardOutlineWidth
-                    )
-            )
-            .scaleEffect(configuration.isPressed ? 0.985 : 1)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
-    }
-}
-
-private enum LibraryQuickAccessSelection: Equatable {
-    case allItems
-    case trips
-    case collections
-}
-
-private enum LibraryItemFilter: Equatable {
+private enum LibraryItemFilter: CaseIterable {
     case none
     case onThisDay
     case needsInfo
 
-    func matches(_ souvenir: Souvenir) -> Bool {
+    var title: String {
+        switch self {
+        case .none: "All souvenirs"
+        case .needsInfo: "Needs Info"
+        case .onThisDay: "Anniversaries"
+        }
+    }
+
+    func matches(_ souvenir: Souvenir, on day: Date) -> Bool {
         switch self {
         case .none:
             return true
         case .onThisDay:
-            return souvenir.isOnThisDayMatch
+            return GalleryDailyFeature.isAnniversary(souvenir.acquiredDate, on: day)
         case .needsInfo:
             return souvenir.needsAttention
         }
     }
-}
-
-private enum LibraryPrimarySurface {
-    case items
-    case trips
-    case places
-}
-
-private struct LibraryEmptyPresentation {
-    let icon: String
-    let title: String
-    let message: String
 }
 
 struct PlaceDetailScreen: View {
@@ -1806,14 +1421,17 @@ private struct LibraryFirstSouvenirCard: View {
 }
 
 enum LibraryContentState: Equatable {
+    case loading
     case empty
     case populated
 
     static func resolve(
         souvenirCount: Int,
-        tripCount: Int
+        tripCount: Int,
+        awaitingImport: Bool = false
     ) -> LibraryContentState {
-        souvenirCount == 0 && tripCount == 0 ? .empty : .populated
+        guard souvenirCount == 0 && tripCount == 0 else { return .populated }
+        return awaitingImport ? .loading : .empty
     }
 }
 
@@ -1891,7 +1509,8 @@ private enum LibraryFetchRequestFactory {
         let request = Souvenir.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(key: "updatedAt", ascending: false),
-            NSSortDescriptor(key: "createdAt", ascending: false)
+            NSSortDescriptor(key: "createdAt", ascending: false),
+            NSSortDescriptor(key: "id", ascending: true)
         ]
         request.predicate = NSPredicate(
             format: "library.id == %@ AND deletedAt == NIL",
@@ -2006,22 +1625,12 @@ private extension Souvenir {
         title.normalizedDisplayValue == nil || visibleTripTitle == nil || gotItInSummary == nil
     }
 
-    var isOnThisDayMatch: Bool {
-        guard let acquiredDate else {
-            return false
-        }
-
-        let calendar = Calendar.autoupdatingCurrent
-        let acquiredComponents = calendar.dateComponents([.month, .day], from: acquiredDate)
-        let currentComponents = calendar.dateComponents([.month, .day], from: .now)
-        return acquiredComponents.month == currentComponents.month && acquiredComponents.day == currentComponents.day
-    }
-
     var librarySearchableText: String {
         [
             displayTitle,
             visibleTripTitle,
             gotItInSummary,
+            galleryLocation,
             story.normalizedDisplayValue,
             acquiredOrUpdatedSummary,
             needsAttention ? "needs info" : nil
@@ -2034,9 +1643,10 @@ private extension Souvenir {
         librarySearchableText.localizedLowercase.contains(query)
     }
 
-    var primaryThumbnailData: Data? {
-        sortedPhotoAssets.first(where: { $0.thumbnailData != nil })?.thumbnailData
-            ?? sortedPhotoAssets.first(where: { $0.displayImageData != nil })?.displayImageData
+    var galleryLocation: String? {
+        let country = gotItInCountryCode.normalizedDisplayValue
+        let name = country.flatMap { $0.count == 2 ? Locale.current.localizedString(forRegionCode: $0.uppercased()) : $0 }
+        return PlacePresentationLogic.displayTitle(name: gotItInName, city: gotItInCity, country: name ?? country)
     }
 
     var placeCandidate: PlaceCandidate? {
@@ -2068,21 +1678,6 @@ private extension Souvenir {
             city: gotItInCity,
             country: gotItInCountryCode
         )
-    }
-
-    private var sortedPhotoAssets: [PhotoAsset] {
-        let photoAssets = (photos as? Set<PhotoAsset>) ?? []
-        return photoAssets.sorted { lhs, rhs in
-            if lhs.isPrimary != rhs.isPrimary {
-                return lhs.isPrimary && !rhs.isPrimary
-            }
-
-            if lhs.sortIndex != rhs.sortIndex {
-                return lhs.sortIndex < rhs.sortIndex
-            }
-
-            return (lhs.createdAt ?? .distantFuture) < (rhs.createdAt ?? .distantFuture)
-        }
     }
 
     private func resolvedCoordinate(

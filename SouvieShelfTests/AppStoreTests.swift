@@ -3,6 +3,19 @@ import XCTest
 
 @MainActor
 final class AppStoreTests: XCTestCase {
+    func testTripLinksReturnToExistingTripAcrossMapAndSouvenir() {
+        let store = AppStore(dependencies: .preview())
+        let trip = UUID()
+        let entry = AppRoute.souvenir(UUID())
+        store.open(entry)
+        store.open(.trip(trip))
+        store.open(.tripMap(trip))
+        store.open(.tripSouvenir(tripID: trip, souvenirID: UUID()))
+        store.open(.trip(trip))
+        XCTAssertEqual(store.routePath, [entry, .trip(trip)])
+        XCTAssertEqual(store.selectedTab, .library)
+    }
+
     func testLaunchTransitionsToPairingWhenNoLibraryExists() async {
         let store = AppStore(dependencies: .preview(scenario: .pairing))
 
@@ -19,6 +32,22 @@ final class AppStoreTests: XCTestCase {
 
         XCTAssertEqual(store.phase, .pairing)
         XCTAssertNil(store.activeLibraryContext)
+    }
+
+    func testAcceptedShareWaitsForItsRootEvenWhenAPrivateShelfExists() async throws {
+        let dependencies = AppDependencies.preview(scenario: .ready)
+        let store = AppStore(dependencies: dependencies)
+        await store.launchIfNeeded()
+        await store.waitForAcceptedLibrary()
+        XCTAssertEqual(store.phase, .waitingForSharedLibrary)
+        XCTAssertNil(store.activeLibraryContext)
+
+        await store.retryLaunch()
+        XCTAssertEqual(store.phase, .waitingForSharedLibrary)
+        try dependencies.persistenceController.seedLibrary(title: "Our Library", scope: .sharedLibrary)
+        await store.retryLaunch()
+        XCTAssertEqual(store.phase, .ready)
+        XCTAssertEqual(store.activeLibraryContext?.storeScope, .sharedLibrary)
     }
 
     func testCreateOurLibraryShowsICloudRequiredWhenICloudIsUnavailable() async {
