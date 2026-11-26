@@ -484,13 +484,14 @@ enum TripPresentationLogic {
     }
 }
 
-private enum TripDetailFetchRequestFactory {
+enum TripDetailFetchRequestFactory {
     static func trip(
         tripID: UUID,
         activeLibraryContext: ActiveLibraryContext,
         persistenceController: PersistenceController
     ) -> NSFetchRequest<Trip> {
         let request = Trip.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
         request.fetchLimit = 1
         request.predicate = NSCompoundPredicate(
             andPredicateWithSubpredicates: [

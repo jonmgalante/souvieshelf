@@ -1,7 +1,27 @@
+import CoreData
 import XCTest
 @testable import SouvieShelf
 
 final class LibraryScreenTests: XCTestCase {
+    @MainActor
+    func testLibraryDetailRequestsSupportLiveObservation() async throws {
+        let dependencies = AppDependencies.preview(scenario: .ready)
+        let persistence = dependencies.persistenceController
+        let launch = await dependencies.bootstrapRepository.resolveLaunchContext()
+        guard case .ready(let library) = launch else { return XCTFail("Expected a seeded library") }
+
+        func observe<T: NSManagedObject>(_ request: NSFetchRequest<T>) throws {
+            // An empty descriptor list raises an Objective-C exception at navigation time.
+            XCTAssertFalse(request.sortDescriptors?.isEmpty ?? true)
+            guard request.sortDescriptors?.isEmpty == false else { return }
+            let controller = NSFetchedResultsController(fetchRequest: request, managedObjectContext: persistence.viewContext,
+                                                        sectionNameKeyPath: nil, cacheName: nil)
+            try controller.performFetch()
+        }
+        try observe(SouvenirDetailFetchRequestFactory.make(souvenirID: UUID(), activeLibraryContext: library, persistenceController: persistence))
+        try observe(TripDetailFetchRequestFactory.trip(tripID: UUID(), activeLibraryContext: library, persistenceController: persistence))
+    }
+
     func testGoalMockupChromeMatchesReference() {
         let goal = LibraryMockupReferences.goal
 
