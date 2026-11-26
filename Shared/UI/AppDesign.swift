@@ -233,6 +233,27 @@ enum AppTheme {
     }
 }
 
+/// The Library palette also responds to the system Increase Contrast setting.
+enum GalleryTheme {
+    static let canvas = adaptive(light: 0xF7F6F2, dark: 0x191B20, highLight: 0xFFFFFF, highDark: 0x090A0C)
+    static let ink = adaptive(light: 0x22252A, dark: 0xF5F4EF, highLight: 0x101114, highDark: 0xFFFFFF)
+    static let secondary = adaptive(light: 0x555A62, dark: 0xBEC2CA, highLight: 0x34383E, highDark: 0xEAEBEE)
+    static let accent = adaptive(light: 0x2454C6, dark: 0x9BB8FF, highLight: 0x13398D, highDark: 0xC2D3FF)
+    static let onAccent = adaptive(light: 0xFFFFFF, dark: 0x111B35, highLight: 0xFFFFFF, highDark: 0x000A20)
+    static let surface = adaptive(light: 0xECEBE5, dark: 0x282B31, highLight: 0xF2F2EF, highDark: 0x202329)
+    static let rule = adaptive(light: 0xCBCBC5, dark: 0x50545D, highLight: 0x666A71, highDark: 0x969CA6)
+
+    private static func adaptive(light: UInt32, dark: UInt32, highLight: UInt32, highDark: UInt32) -> Color {
+        Color(uiColor: UIColor { traits in
+            let highContrast = traits.accessibilityContrast == .high
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: highContrast ? highDark : dark)
+            }
+            return UIColor(hex: highContrast ? highLight : light)
+        })
+    }
+}
+
 enum AppSpacing {
     static let xSmall: CGFloat = 4
     static let small: CGFloat = 8

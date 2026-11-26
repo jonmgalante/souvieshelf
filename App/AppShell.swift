@@ -25,8 +25,8 @@ struct AppShell: View {
                     }
                     .tag(MainTab.map)
             }
-            .tint(AppTheme.librarySelectedTabAccent)
-            .toolbarBackground(LibraryHomeDesign.Colors.elevatedSurface, for: .tabBar)
+            .tint(store.selectedTab == .library ? GalleryTheme.accent : AppTheme.librarySelectedTabAccent)
+            .toolbarBackground(store.selectedTab == .library ? GalleryTheme.canvas : LibraryHomeDesign.Colors.elevatedSurface, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
             .navigationDestination(for: AppRoute.self) { route in
                 destination(for: route)

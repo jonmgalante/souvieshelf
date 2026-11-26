@@ -31,6 +31,7 @@ enum StoreScope: String, CaseIterable, Codable, Sendable {
 
 enum AppPhase: String, CaseIterable, Codable, Sendable {
     case launching
+    case waitingForSharedLibrary
     case iCloudUnavailable
     case pairing
     case ready

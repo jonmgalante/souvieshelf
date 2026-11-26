@@ -726,13 +726,14 @@ enum SouvenirPhotoEditError: LocalizedError, Equatable {
     }
 }
 
-private enum SouvenirDetailFetchRequestFactory {
+enum SouvenirDetailFetchRequestFactory {
     static func make(
         souvenirID: UUID,
         activeLibraryContext: ActiveLibraryContext,
         persistenceController: PersistenceController
     ) -> NSFetchRequest<Souvenir> {
         let request = Souvenir.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
         request.fetchLimit = 1
         request.relationshipKeyPathsForPrefetching = ["photos", "trip"]
         request.predicate = NSCompoundPredicate(
