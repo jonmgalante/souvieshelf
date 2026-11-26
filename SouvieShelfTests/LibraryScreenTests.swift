@@ -179,6 +179,26 @@ final class LibraryScreenTests: XCTestCase {
         )
     }
 
+    func testGalleryStoryExcerptHandlesMissingTextAndLongStories() throws {
+        XCTAssertNil("  \n ".galleryStoryExcerpt)
+        XCTAssertEqual("  A cup\n from Ravello. ".galleryStoryExcerpt, "A cup from Ravello.")
+        let longStory = String(repeating: "We remembered the little shop. ", count: 12)
+        let excerpt = try XCTUnwrap(longStory.galleryStoryExcerpt)
+        XCTAssertLessThanOrEqual(excerpt.count, 141)
+        XCTAssertTrue(excerpt.hasSuffix("…"))
+        XCTAssertTrue(longStory.hasPrefix(excerpt.dropLast() + " "))
+    }
+
+    func testSharedImportDoesNotPresentAnEmptyShelfUntilComplete() {
+        XCTAssertEqual(LibraryContentState.resolve(souvenirCount: 0, tripCount: 0, awaitingImport: true), .loading)
+        XCTAssertEqual(LibraryContentState.resolve(souvenirCount: 0, tripCount: 0, awaitingImport: false), .empty)
+    }
+
+    func testCachedContentIsBrowsableDuringSharedImport() {
+        XCTAssertEqual(LibraryContentState.resolve(souvenirCount: 1, tripCount: 0, awaitingImport: true), .populated)
+        XCTAssertEqual(LibraryContentState.resolve(souvenirCount: 0, tripCount: 1, awaitingImport: true), .populated)
+    }
+
     func testContentStateIsEmptyWhenSouvenirsAndTripsAreBothMissing() {
         let state = LibraryContentState.resolve(
             souvenirCount: 0,
